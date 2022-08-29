@@ -50,6 +50,7 @@ dependencies = [
 [[package]]
 name = "rust_source_bundler"
 version = "0.1.0"
+source = "git+https://github.com/adam-bates/rust_source_bundler#7792527a55f81503791a810815ca3e6ce5ea8375"
 dependencies = [
  "anyhow",
  "quote",

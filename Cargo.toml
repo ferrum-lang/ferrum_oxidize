@@ -15,6 +15,6 @@ quote = "1.0.21"
 proc-macro2 = "1.0.43"
 
 [build-dependencies]
-rust_source_bundler = { path = "../../rust_source_bundler" }
+rust_source_bundler = { git = "https://github.com/adam-bates/rust_source_bundler" }
 anyhow = "1.0"
 
