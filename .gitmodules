@@ -1,0 +1,3 @@
+[submodule "ferrum_runtime"]
+	path = ferrum_runtime
+	url = git@github.com:ferrum-lang/ferrum_runtime.git
