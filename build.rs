@@ -15,7 +15,7 @@ const GENERATED_RUNTIME_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"),
 fn main() -> Result<()> {
     create_generated_dir()?;
 
-    let code = bundle_source(RUNTIME_ROOT_DIR, String::from("lib.rs"))?;
+    let code = bundle_source(RUNTIME_ROOT_DIR, "lib.rs")?;
 
     fs::write(
         &Path::new(GENERATED_RUNTIME_FILE),
