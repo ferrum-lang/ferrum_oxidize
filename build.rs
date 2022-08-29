@@ -21,6 +21,8 @@ fn main() -> Result<()> {
         &Path::new(GENERATED_RUNTIME_FILE),
         code,
     )?;
+
+    println!("cargo:rerun-if-changed=ferrum_runtime");
     
     return Ok(());
 }
