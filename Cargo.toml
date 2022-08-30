@@ -13,6 +13,7 @@ thiserror = "1.0"
 syn = { version = "1.0.99", features = ["full", "printing", "extra-traits"] }
 quote = "1.0.21"
 proc-macro2 = "1.0.43"
+target-lexicon = "0.12.4"
 
 [build-dependencies]
 rust_source_bundler = "0.2.2"
