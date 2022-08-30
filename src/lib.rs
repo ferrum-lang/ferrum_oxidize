@@ -73,10 +73,6 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FerrumProjec
 }
 
 pub fn compile_to_ferrum_file_ast(file: PathBuf) -> Result<FerrumFileAst> {
-    // read target content
-    // lex into tokens
-    // parse to ast
-
     let content = fs::read_to_string(file)?;
     let tokens = lexer::lex_into_tokens(content)?;
     let file_ast = parser::parse_to_ast(tokens)?;
