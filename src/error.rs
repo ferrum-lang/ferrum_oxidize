@@ -2,8 +2,8 @@ use crate::cargo::CargoError;
 use crate::config::ConfigError;
 use crate::generator::GeneratorError;
 use crate::lexer::LexerError;
-use crate::parser::ParserError;
-use crate::translator::TranslatorError;
+use crate::parser::ParseError;
+use crate::translator::TranslateError;
 
 use thiserror::Error;
 
@@ -15,11 +15,11 @@ pub enum OxidizeError {
     #[error("Lexer error")]
     LexerError(#[from] LexerError),
 
-    #[error("Parser error")]
-    ParserError(#[from] ParserError),
+    #[error("Parse error")]
+    ParserError(#[from] ParseError),
 
-    #[error("Translator error")]
-    TranslatorError(#[from] TranslatorError),
+    #[error("Translate error")]
+    TranslatorError(#[from] TranslateError),
 
     #[error("Generator error")]
     GeneratorError(#[from] GeneratorError),

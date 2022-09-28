@@ -14,6 +14,9 @@ use std::{
 
 use target_lexicon::HOST as HOST_TARGET;
 
+use anyhow::Context;
+
+#[derive(Debug, Clone, Default)]
 pub struct Config {
     pub entry_file: Option<PathBuf>,
     pub build_dir: Option<PathBuf>,
@@ -23,16 +26,20 @@ pub struct Config {
 
 pub fn determine_entry_file(config_entry_file: Option<PathBuf>) -> Result<PathBuf> {
     if let Some(entry_file) = config_entry_file {
-        let entry_file = fs::canonicalize(entry_file)?;
+        let entry_file = fs::canonicalize(entry_file.clone())
+            .with_context(|| format!("File not found: {entry_file:?}"))?;
+
         return Ok(entry_file);
     }
 
-    let entry_file = fs::canonicalize("./main.fe")?;
+    let pwd = fs::canonicalize(".")?;
+
+    let entry_file = pwd.join("./main.fe");
     if entry_file.exists() {
         return Ok(entry_file);
     }
 
-    let entry_file = fs::canonicalize("./src/main.fe")?;
+    let entry_file = pwd.join("./src/main.fe");
     if entry_file.exists() {
         return Ok(entry_file);
     }
@@ -47,7 +54,7 @@ pub fn determine_build_dir(config_build_dir: Option<PathBuf>) -> Result<PathBuf>
         return Ok(build_dir);
     }
 
-    let build_dir = fs::canonicalize("./.ferrum")?;
+    let build_dir = fs::canonicalize(".")?.join(".ferrum");
 
     return Ok(build_dir);
 }
@@ -62,7 +69,7 @@ pub fn determine_out_file(config_out_file: Option<PathBuf>, entry_file: &PathBuf
         .to_string_lossy()
         .to_string();
 
-    let out_file = fs::canonicalize(name)?;
+    let out_file = fs::canonicalize(".")?.join(name).with_extension("");
 
     return Ok(out_file);
 }

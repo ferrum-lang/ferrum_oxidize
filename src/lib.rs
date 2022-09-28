@@ -4,7 +4,9 @@ mod error;
 mod generator;
 mod lexer;
 mod parser;
+mod punctuated;
 mod result;
+mod span;
 mod target;
 mod translator;
 
@@ -13,7 +15,11 @@ pub use error::OxidizeError;
 pub use result::Result;
 pub use target::Target;
 
-use parser::ast::{FerrumFileAst, FerrumProjectAst};
+use parser::ast::{
+    FerrumProjectAst,
+    FerrumProjectAstNode,
+    FerrumFileAst,
+};
 
 use translator::ast::RustProjectAst;
 
@@ -38,9 +44,16 @@ pub struct FerrumProject {
 
 pub fn build_project(cfg: Config) -> Result<FerrumProject> {
     let entry_file = config::determine_entry_file(cfg.entry_file)?;
+    dbg!(&entry_file);
+
     let build_dir = config::determine_build_dir(cfg.build_dir)?;
+    dbg!(&build_dir);
+
     let out_file = config::determine_out_file(cfg.out_file, &entry_file)?;
+    dbg!(&out_file);
+
     let target = config::determine_target(cfg.target)?;
+    dbg!(&target);
 
     let cargo_project = build_to_cargo_project(entry_file.clone(), build_dir.clone())?;
 
@@ -67,21 +80,37 @@ pub fn build_to_cargo_project(entry_file: PathBuf, build_dir: PathBuf) -> Result
 pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FerrumProjectAst> {
     let entry_ast = compile_to_ferrum_file_ast(entry_file)?;
 
-    // recursively build ProjectAst from files
+    let project_ast = FerrumProjectAst {
+        root: FerrumProjectAstNode {
+            file: entry_ast,
+            nodes: vec![],
+        },
+    };
 
-    todo!();
+    // TODO: recursively build ProjectAst from use locals
+
+    println!("\nAST: {project_ast:#?}\n");
+
+    return Ok(project_ast);
 }
 
 pub fn compile_to_ferrum_file_ast(file: PathBuf) -> Result<FerrumFileAst> {
     let content = fs::read_to_string(file)?;
     let tokens = lexer::lex_into_tokens(content)?;
+
+    println!("\nTokens: {tokens:#?}\n");
+
     let file_ast = parser::parse_to_ast(tokens)?;
 
     return Ok(file_ast);
 }
 
 pub fn translate_to_rust_ast(ferrum_ast: FerrumProjectAst) -> Result<RustProjectAst> {
-    return Ok(translator::translate_to_rust(ferrum_ast)?);
+    let rs_ast = translator::translate_to_rust(ferrum_ast)?;
+
+    println!("\nRust AST: {rs_ast:#?}\n");
+
+    return Ok(rs_ast);
 }
 
 pub fn generate_cargo_project(
