@@ -20,7 +20,7 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
         *column = 0;
     };
 
-    let mut is_in_string_template = false;
+    let mut nested_str_template_count = 0;
 
     while let Some(c) = chars.next() {
         column += 1;
@@ -146,7 +146,7 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
                         buffer,
                         (from, (line, column)),
                     ));
-                    is_in_string_template = true;
+                    nested_str_template_count += 1;
                 } else {
                     tokens.push(Token::new(
                         TokenType::Literal(TokenLiteral::String),
@@ -157,7 +157,7 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
             }
 
             // Middle or end of string-template
-            '}' if is_in_string_template => {
+            '}' if nested_str_template_count > 0 => {
                 let from = SpanPoint { line, column };
 
                 let mut buffer = String::new();
@@ -199,7 +199,7 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
                         (from, (line, column)),
                     ));
                 } else {
-                    is_in_string_template = false;
+                    nested_str_template_count -= 1;
                     tokens.push(Token::new(
                         TokenType::TemplateStringEnd,
                         buffer,
