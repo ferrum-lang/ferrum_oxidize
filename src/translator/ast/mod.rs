@@ -10,6 +10,8 @@ pub use stmt::*;
 mod r#type;
 pub use r#type::*;
 
+use std::collections::HashMap;
+
 #[derive(Debug, Clone)]
 pub struct RustProjectAst {
     pub root: RustProjectAstNode,
@@ -18,7 +20,7 @@ pub struct RustProjectAst {
 #[derive(Debug, Clone)]
 pub struct RustProjectAstNode {
     pub file: RustFileAst,
-    pub nodes: Vec<RustProjectAstNode>,
+    pub mods: HashMap<String, RustProjectAstNode>,
 }
 
 #[derive(Debug, Clone)]

@@ -3,31 +3,31 @@
 files:
 /src
 |- /utils
-|  |- mod.rs
-|  |- string.rs
-|- lib.rs
-|- other.rs
+|  |- mod.fe
+|  |- string.fe
+|- main.fe
+|- other.fe
 
 -->
 
 Project {
     root: Node {
-        file: /src/lib.rs
-        nodes: [
-            Node {
-                file: /src/utils/mod.rs
-                nodes: [
-                    Node {
-                        file: /src/utils/string.rs
-                        nodes: []
+        file: /src/main.fe
+        mods: {
+            "utils": Node {
+                file: /src/utils/mod.fe
+                mods: {
+                    "string": Node {
+                        file: /src/utils/string.fe
+                        mods: {}
                     }
-                ]
+                }
             },
-            Node {
-                file: /src/other.rs
-                nodes: []
+            "other": Node {
+                file: /src/other.fe
+                mods: {}
             }
-        ]
+        }
     }
 }
 

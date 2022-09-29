@@ -12,6 +12,8 @@ pub use error::TranslateError;
 use crate::parser;
 use crate::Result;
 
+use std::collections::HashMap;
+
 pub fn translate_to_rust(fe_ast: parser::ast::FerrumProjectAst) -> Result<RustProjectAst> {
     let fe_ast = prep::prepare_fe_ast_for_translation(fe_ast)?;
 
@@ -20,7 +22,7 @@ pub fn translate_to_rust(fe_ast: parser::ast::FerrumProjectAst) -> Result<RustPr
     let mut rs_ast = RustProjectAst {
         root: RustProjectAstNode {
             file: rs_root_file,
-            nodes: vec![],
+            mods: HashMap::new(),
         },
     };
 
