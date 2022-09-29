@@ -111,7 +111,7 @@ pub fn parse_fn_call(parser: &mut Parser) -> Result<FnCallNode> {
 
         args.push(prev_comma, FnCallArgNode { span, name, expr });
 
-        prev_comma = parser.consume_if(TokenType::Comma);
+        prev_comma = parser.consume_if(TokenType::Comma)?;
     }
 
     if let Some(prev_comma) = prev_comma {

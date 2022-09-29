@@ -2,6 +2,11 @@ use super::*;
 
 pub fn gen_rs_for_fn_def(generator: &mut Generator, fn_def: FnDef) -> String {
     let mut rs = generator.padding();
+
+    if fn_def.is_public {
+        rs.push_str("pub ");
+    }
+
     rs.push_str(&format!("fn {}() {{\n", fn_def.name));
 
     generator.indent_count += 1;

@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Debug, Clone)]
 pub struct FnDef {
+    pub is_public: bool,
     pub name: String,
     pub params: Vec<FnDefParam>,
     pub return_type: Option<Type>,

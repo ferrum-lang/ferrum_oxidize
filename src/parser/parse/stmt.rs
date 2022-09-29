@@ -5,17 +5,21 @@ pub fn parse_statement(parser: &mut Parser) -> Result<StatementNode> {
         .current()
         .with_context(|| format!("Expected some statement to parse"))?;
 
-    match token.token_type {
-        TokenType::Identifier => return parse_ident_stmt(parser),
+    let stmt = match token.token_type {
+        TokenType::Identifier => parse_ident_stmt(parser)?,
         _ => {
             let expr = parse_expr(parser)?;
 
-            return Ok(StatementNode {
+            StatementNode {
                 span: expr.span,
                 statement: Statement::Expr(expr),
-            });
+            }
         }
-    }
+    };
+
+    require_newline(parser, stmt.span.to.line)?;
+
+    return Ok(stmt);
 }
 
 pub fn parse_ident_stmt(parser: &mut Parser) -> Result<StatementNode> {
@@ -34,5 +38,4 @@ pub fn parse_ident_stmt(parser: &mut Parser) -> Result<StatementNode> {
         }
     }
 }
-
 

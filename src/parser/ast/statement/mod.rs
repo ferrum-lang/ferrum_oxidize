@@ -11,7 +11,6 @@ pub struct StatementNode {
 
 #[derive(Debug, Clone)]
 pub enum Statement {
-    Item(Box<ItemNode>),
     Expr(ExprNode),
 }
 

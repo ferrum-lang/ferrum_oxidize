@@ -24,7 +24,7 @@ pub fn translate_file(fe_file: parser::ast::FerrumFileAst) -> Result<RustFileAst
     return Ok(rs_file);
 }
 
-fn translate_item(item: parser::ast::ItemNode) -> Result<Item> {
+pub fn translate_item(item: parser::ast::ItemNode) -> Result<Item> {
     match item.item {
         parser::ast::Item::FnDef(fn_def) => {
             let fn_def = translate_fn_def(fn_def)?;

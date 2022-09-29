@@ -30,7 +30,7 @@ fn move_top_stmts_to_main(fe_ast: &mut parser::ast::FerrumProjectAst) {
     let mut stmts = vec![];
     while let Some(node) = iter.next() {
         match node.item {
-            parser::ast::Item::Statement(stmt) => stmts.push(stmt),
+            parser::ast::Item::Statement(_) => stmts.push(node),
             _ => fe_ast.root.file.items.push(node),
         }
     }
@@ -39,14 +39,42 @@ fn move_top_stmts_to_main(fe_ast: &mut parser::ast::FerrumProjectAst) {
 
     fe_ast.root.file.items.push(parser::ast::ItemNode {
         item: parser::ast::Item::FnDef(parser::ast::FnDefNode {
+            pub_token: None,
+            fn_token: lexer::token::Token {
+                literal: String::from("fn"),
+                token_type: lexer::token::TokenType::Keyword(
+                    lexer::token::TokenKeyword::Fn
+                ),
+                span,
+            },
             name: lexer::token::Token {
                 literal: String::from("main"),
                 token_type: lexer::token::TokenType::Identifier,
                 span,
             },
+            open_paren: lexer::token::Token {
+                literal: String::from("("),
+                token_type: lexer::token::TokenType::OpenParenthesis,
+                span,
+            },
             params: Punctuated::new(),
+            close_paren: lexer::token::Token {
+                literal: String::from(")"),
+                token_type: lexer::token::TokenType::CloseParenthesis,
+                span,
+            },
             return_type: None,
+            open_brace: lexer::token::Token {
+                literal: String::from("{"),
+                token_type: lexer::token::TokenType::OpenBrace,
+                span,
+            },
             body: stmts,
+            close_brace: lexer::token::Token {
+                literal: String::from("}"),
+                token_type: lexer::token::TokenType::CloseBrace,
+                span,
+            },
             span,
         }),
         span,

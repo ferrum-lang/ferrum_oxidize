@@ -8,7 +8,7 @@ pub use error::ParseError;
 mod parse;
 pub use parse::*;
 
-use crate::lexer::token::{Token, TokenType, TokenLiteral};
+use crate::lexer::token::{Token, TokenKeyword, TokenLiteral, TokenType};
 use crate::Result;
 
 pub fn parse_to_ast(tokens: Vec<Token>) -> Result<FerrumFileAst> {
@@ -69,7 +69,9 @@ impl Parser {
                 Some(token),
                 token_type,
             ))?,
-            Err(e) => Err(e).with_context(|| ParseError::NotExpectedToken(file!(), line!(), None, token_type))?,
+            Err(e) => Err(e).with_context(|| {
+                ParseError::NotExpectedToken(file!(), line!(), None, token_type)
+            })?,
         }
     }
 
@@ -81,12 +83,12 @@ impl Parser {
         return Ok(token);
     }
 
-    fn consume_if(&mut self, token_type: TokenType) -> Option<Token> {
+    fn consume_if(&mut self, token_type: TokenType) -> Result<Option<Token>> {
         if !self.scan(&[token_type.clone()]) {
-            return None;
+            return Ok(None);
         }
 
-        let token = self.consume(token_type).unwrap();
-        return Some(token);
+        let token = self.consume(token_type)?;
+        return Ok(Some(token));
     }
 }
