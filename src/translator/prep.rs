@@ -11,8 +11,6 @@ pub fn prepare_fe_ast_for_translation(
 
     ensure_no_top_stmts(&fe_ast)?;
 
-    fill_scoped_lookup_tables(&mut fe_ast)?;
-
     return Ok(fe_ast);
 }
 
@@ -52,6 +50,7 @@ fn move_top_stmts_to_main(fe_ast: &mut parser::ast::FerrumProjectAst) {
                 token_type: lexer::token::TokenType::Identifier,
                 span,
             },
+            generics: None,
             open_paren: lexer::token::Token {
                 literal: String::from("("),
                 token_type: lexer::token::TokenType::OpenParenthesis,
@@ -75,6 +74,7 @@ fn move_top_stmts_to_main(fe_ast: &mut parser::ast::FerrumProjectAst) {
                 token_type: lexer::token::TokenType::CloseBrace,
                 span,
             },
+            scope: fe_ast.root.file.scope.clone(),
             span,
         }),
         span,
@@ -113,6 +113,3 @@ fn ensure_no_top_stmts(fe_ast: &parser::ast::FerrumProjectAst) -> Result {
     return ensure_no_top_stmts_in_node(&fe_ast.root);
 }
 
-fn fill_scoped_lookup_tables(fe_ast: &mut parser::ast::FerrumProjectAst) -> Result {
-    return Ok(());
-}

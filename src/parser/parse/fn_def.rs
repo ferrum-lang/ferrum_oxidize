@@ -79,6 +79,7 @@ pub fn parse_fn_def(parser: &mut Parser, pub_token: Option<Token>) -> Result<FnD
         pub_token,
         fn_token,
         name,
+        generics: None,
         open_paren,
         params,
         close_paren,
@@ -86,6 +87,7 @@ pub fn parse_fn_def(parser: &mut Parser, pub_token: Option<Token>) -> Result<FnD
         open_brace,
         body,
         close_brace,
+        scope: ScopeTable::new(),
         span,
     });
 }

@@ -16,6 +16,41 @@ pub fn parse_to_ast(tokens: Vec<Token>) -> Result<FerrumFileAst> {
     return parse_file(&mut parser);
 }
 
+pub fn fill_project_scope_tables(project_ast: &mut FerrumProjectAst) {
+    fn fill_scope_with_items<'a>(scope: &mut ScopeTable, items: impl IntoIterator<Item = &'a mut ItemNode>) {
+        for item in items {
+            match &mut item.item {
+                Item::FnDef(fn_def) => {
+                    scope.insert(fn_def.name.literal.clone(), ScopeRef::Fn {
+                        name: fn_def.name.literal.clone(),
+                        generics: fn_def.generics.clone().map(
+                            |g| g
+                                .take_values()
+                                .into_iter()
+                                .map(|g| g.generic_type)
+                                .collect::<Vec<GenericType>>()
+                        ),
+                        params: fn_def.params.clone().take_values(),
+                        return_type: fn_def.return_type.clone().map(|r| r.1.typ),
+                    });
+                    fill_scope_with_items(&mut fn_def.scope, &mut fn_def.body);
+                },
+                Item::Statement(_) => {},
+            }
+        }
+    }
+
+    fn handle_ast_node(ast_node: &mut FerrumProjectAstNode) {
+        fill_scope_with_items(&mut ast_node.file.scope, &mut ast_node.file.items);
+
+        for node in &mut ast_node.nodes {
+            handle_ast_node(node);
+        }
+    }
+
+    handle_ast_node(&mut project_ast.root);
+}
+
 pub struct Parser {
     pub tokens: Vec<Token>,
     index: usize,

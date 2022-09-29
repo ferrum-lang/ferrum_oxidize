@@ -54,6 +54,7 @@ pub fn gen_rs_for_file(generator: &mut Generator, file_ast: RustFileAst) -> Resu
     rs.push_str("use crate::ferrum::prelude::*;\n\n");
 
     for item in file_ast.items {
+        rs.push_str(&generator.padding());
         rs.push_str(&gen_rs_for_item(generator, item));
     }
 

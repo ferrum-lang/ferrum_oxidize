@@ -9,6 +9,9 @@ pub fn gen_rs_for_stmt(generator: &mut Generator, stmt: Statement) -> String {
         },
         Statement::Item(item) => {
             rs.push_str(&gen_rs_for_item(generator, item));
+
+            // Semicolons not needed on items
+            return rs;
         },
     }
 

@@ -73,7 +73,7 @@ pub fn build_to_cargo_project(entry_file: PathBuf, build_dir: PathBuf) -> Result
 pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FerrumProjectAst> {
     let entry_ast = compile_to_ferrum_file_ast(entry_file)?;
 
-    let project_ast = FerrumProjectAst {
+    let mut project_ast = FerrumProjectAst {
         root: FerrumProjectAstNode {
             file: entry_ast,
             nodes: vec![],
@@ -81,6 +81,8 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FerrumProjec
     };
 
     // TODO: recursively build ProjectAst from use locals
+
+    parser::fill_project_scope_tables(&mut project_ast);
 
     println!("\nAST: {project_ast:#?}\n");
 

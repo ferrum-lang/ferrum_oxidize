@@ -42,6 +42,12 @@ pub use item::*;
 pub mod fn_def;
 pub use fn_def::*;
 
+pub mod generic;
+pub use generic::*;
+
+pub mod scope;
+pub use scope::*;
+
 pub mod r#type;
 pub use r#type::*;
 
@@ -63,6 +69,7 @@ pub struct FerrumProjectAstNode {
 #[derive(Debug, Clone)]
 pub struct FerrumFileAst {
     pub items: Vec<ItemNode>,
+    pub scope: ScopeTable,
     pub span: Span,
 }
 
@@ -70,6 +77,7 @@ impl FerrumFileAst {
     pub fn new() -> Self {
         return Self {
             items: vec![],
+            scope: ScopeTable::new(),
             span: Span { from: (0, 0).into(), to: (0, 0).into() }
         };
     }

@@ -1,7 +1,7 @@
 use super::*;
 
 pub fn gen_rs_for_fn_def(generator: &mut Generator, fn_def: FnDef) -> String {
-    let mut rs = generator.padding();
+    let mut rs = String::new();
 
     if fn_def.is_public {
         rs.push_str("pub ");
