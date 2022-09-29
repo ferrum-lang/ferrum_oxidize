@@ -99,4 +99,23 @@ impl<T: std::fmt::Debug, D: std::fmt::Debug> Punctuated<T, D> {
             }
         }
     }
+
+    pub fn take_values(self) -> Vec<T> {
+        match self {
+            Self::Empty => return vec![],
+            Self::NonEmpty {
+                first,
+                rest,
+                trailing,
+            } => {
+                let mut values = vec![first];
+
+                for (_, value) in rest {
+                    values.push(value);
+                }
+
+                return values;
+            }
+        }
+    }
 }

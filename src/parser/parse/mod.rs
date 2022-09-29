@@ -82,11 +82,46 @@ fn parse_expr(parser: &mut Parser) -> Result<ExprNode> {
         .with_context(|| format!("Expected some expr to parse"))?;
 
     match token.token_type {
-        TokenType::Identifier => {
-            let ident_expr = parse_ident_expr(parser)?;
-            return Ok(ident_expr);
-        }
+        TokenType::Identifier => return parse_ident_expr(parser),
+        TokenType::Literal(_) => {
+            let literal = parse_literal(parser)?;
+
+            return Ok(ExprNode {
+                span: literal.span,
+                expr: Expr::Literal(literal),
+            });
+        },
         _ => Err(ParseError::UnexpectedToken(file!(), line!(), token))?,
+    }
+}
+
+fn parse_literal(parser: &mut Parser) -> Result<LiteralNode> {
+    let token = parser
+        .current()
+        .with_context(|| format!("Expected some expr to parse"))?;
+
+    let literal = if let TokenType::Literal(literal) = token.token_type {
+        literal
+    } else {
+        Err(ParseError::UnexpectedToken(file!(), line!(), token.clone()))?
+    };
+
+    parser.index += 1;
+
+    match literal {
+        TokenLiteral::Bool(is_true) => {
+            return Ok(LiteralNode {
+                span: token.span,
+                literal: Literal::Bool(is_true),
+            });
+        },
+        TokenLiteral::String => {
+            return Ok(LiteralNode {
+                span: token.span,
+                literal: Literal::String(token.literal),
+            });
+        },
+        _ => todo!(),
     }
 }
 

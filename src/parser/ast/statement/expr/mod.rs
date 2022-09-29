@@ -6,6 +6,9 @@ pub use ident_lookup::*;
 pub mod fn_call;
 pub use fn_call::*;
 
+pub mod literal;
+pub use literal::*;
+
 #[derive(Debug, Clone)]
 pub struct ExprNode {
     pub expr: Expr,
@@ -16,5 +19,6 @@ pub struct ExprNode {
 pub enum Expr {
     IdentLookup(IdentLookupNode),
     FnCall(FnCallNode),
+    Literal(LiteralNode),
 }
 

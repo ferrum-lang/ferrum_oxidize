@@ -1,6 +1,7 @@
 use super::*;
 
 use crate::lexer;
+use crate::punctuated::Punctuated;
 use crate::span::Span;
 
 pub fn prepare_fe_ast_for_translation(
@@ -43,9 +44,10 @@ fn move_top_stmts_to_main(fe_ast: &mut parser::ast::FerrumProjectAst) {
                 token_type: lexer::token::TokenType::Identifier,
                 span,
             },
-            params: vec![],
+            params: Punctuated::new(),
             return_type: None,
             body: stmts,
+            span,
         }),
         span,
     });

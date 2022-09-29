@@ -8,7 +8,7 @@ pub use error::ParseError;
 mod parse;
 pub use parse::*;
 
-use crate::lexer::token::{Token, TokenType};
+use crate::lexer::token::{Token, TokenType, TokenLiteral};
 use crate::Result;
 
 pub fn parse_to_ast(tokens: Vec<Token>) -> Result<FerrumFileAst> {

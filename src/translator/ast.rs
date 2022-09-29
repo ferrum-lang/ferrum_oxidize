@@ -22,13 +22,13 @@ pub enum Item {
 #[derive(Debug, Clone)]
 pub struct FnDef {
     pub name: String,
-    pub params: Vec<FnParam>,
+    pub params: Vec<FnDefParam>,
     pub return_type: Option<Type>,
     pub body: Vec<Statement>,
 }
 
 #[derive(Debug, Clone)]
-pub struct FnParam {
+pub struct FnDefParam {
     pub name: String,
     pub param_type: Type,
 }
@@ -42,6 +42,7 @@ pub enum Statement {
 #[derive(Debug, Clone)]
 pub enum Expr {
     FnCall(FnCall),
+    Literal(Literal),
 }
 
 #[derive(Debug, Clone)]
@@ -52,4 +53,10 @@ pub struct FnCall {
 
 #[derive(Debug, Clone)]
 pub enum Type {}
+
+#[derive(Debug, Clone)]
+pub enum Literal {
+    Bool(bool),
+    String(String),
+}
 

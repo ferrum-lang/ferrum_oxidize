@@ -8,6 +8,7 @@ pub use error::TranslateError;
 
 use crate::parser;
 use crate::Result;
+use crate::parser::ast::ident_lookup;
 
 pub fn translate_to_rust(fe_ast: parser::ast::FerrumProjectAst) -> Result<RustProjectAst> {
     let fe_ast = prep::prepare_fe_ast_for_translation(fe_ast)?;
@@ -49,7 +50,12 @@ fn translate_item(item: parser::ast::ItemNode) -> Result<Item> {
 fn translate_fn_def(fn_def: parser::ast::FnDefNode) -> Result<FnDef> {
     return Ok(FnDef {
         name: fn_def.name.literal,
-        params: vec![],
+        params: fn_def
+            .params
+            .take_values()
+            .into_iter()
+            .map(translate_fn_def_param)
+            .collect::<Result<Vec<FnDefParam>>>()?,
         return_type: None,
         body: fn_def
             .body
@@ -57,6 +63,10 @@ fn translate_fn_def(fn_def: parser::ast::FnDefNode) -> Result<FnDef> {
             .map(translate_stmt)
             .collect::<Result<Vec<Statement>>>()?,
     });
+}
+
+fn translate_fn_def_param(fn_def_param: parser::ast::FnDefParamNode) -> Result<FnDefParam> {
+    todo!();
 }
 
 fn translate_stmt(stmt: parser::ast::StatementNode) -> Result<Statement> {
@@ -75,6 +85,14 @@ fn translate_expr(expr: parser::ast::ExprNode) -> Result<Expr> {
             let fn_call = translate_fn_call(fn_call)?;
             return Ok(Expr::FnCall(fn_call));
         }
+        parser::ast::Expr::Literal(literal) => {
+            let literal = translate_literal(literal)?;
+            return Ok(Expr::Literal(literal));
+        }
+        // parser::ast::Expr::IdentLookup(ident_lookup) => {
+        //     let ident_lookup = translate_ident_lookup(literal)?;
+        //     return Ok(Expr::IdentLookup(ident_lookup));
+        // },
         _ => todo!("Cannot translate expression: {expr:#?}"),
     }
 }
@@ -82,6 +100,22 @@ fn translate_expr(expr: parser::ast::ExprNode) -> Result<Expr> {
 fn translate_fn_call(fn_call: parser::ast::FnCallNode) -> Result<FnCall> {
     return Ok(FnCall {
         name: fn_call.name.literal,
-        args: vec![],
+        args: fn_call
+            .args
+            .take_values()
+            .into_iter()
+            .map(|call_arg| translate_expr(*call_arg.expr))
+            .collect::<Result<Vec<Expr>>>()?,
     });
+}
+
+fn translate_literal(literal: parser::ast::LiteralNode) -> Result<Literal> {
+    match literal.literal {
+        parser::ast::Literal::Bool(is_true) => {
+            return Ok(Literal::Bool(is_true));
+        },
+        parser::ast::Literal::String(string) => {
+            return Ok(Literal::String(string));
+        },
+    }
 }
