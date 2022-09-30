@@ -7,6 +7,7 @@ pub enum Keyword {
     Fn,
     Let,
     Const,
+    Mut,
     Struct,
     Contract,
     Enum,

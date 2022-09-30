@@ -348,6 +348,7 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
                     "fn" => TokenType::Keyword(TokenKeyword::Fn),
                     "let" => TokenType::Keyword(TokenKeyword::Let),
                     "const" => TokenType::Keyword(TokenKeyword::Const),
+                    "mut" => TokenType::Keyword(TokenKeyword::Mut),
                     "struct" => TokenType::Keyword(TokenKeyword::Struct),
                     "contract" => TokenType::Keyword(TokenKeyword::Contract),
                     "enum" => TokenType::Keyword(TokenKeyword::Enum),

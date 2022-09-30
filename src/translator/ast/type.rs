@@ -18,8 +18,8 @@ pub enum Type {
 
     // Scoped(Box<TypeNode>, Box<TypeNode>),
 
-    // SharedRef(Box<TypeNode>),
-    // MutRef(Box<TypeNode>),
+    SharedRef(Box<Type>),
+    MutRef(Box<Type>),
 
     // Managed(Box<TypeNode>),
 

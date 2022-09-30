@@ -14,6 +14,23 @@ pub fn parse_type(parser: &mut Parser) -> Result<TypeNode> {
                 typ: Type::String(token),
             });
         }
+        TokenType::Ampersand => {
+            parser.index += 1;
+
+            if parser.scan(&[TokenType::Keyword(TokenKeyword::Mut)]) {
+                parser.index += 1;
+
+                return Ok(TypeNode {
+                    span: token.span,
+                    typ: Type::MutRef(Box::new(parse_type(parser)?)),
+                });
+            } else {
+                return Ok(TypeNode {
+                    span: token.span,
+                    typ: Type::SharedRef(Box::new(parse_type(parser)?)),
+                });
+            }
+        }
         _ => todo!(),
     }
 }

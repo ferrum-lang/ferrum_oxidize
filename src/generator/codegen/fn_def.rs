@@ -14,7 +14,14 @@ pub fn gen_rs_for_fn_def(generator: &mut Generator, fn_def: FnDef) -> String {
         rs.push_str(", ");
     }
 
-    rs.push_str(") {\n");
+    rs.push_str(")");
+
+    if let Some(return_type) = fn_def.return_type {
+        rs.push_str(" -> ");
+        rs.push_str(&gen_rs_for_type(generator, return_type))
+    }
+
+    rs.push_str(" {\n");
 
     generator.indent_count += 1;
 
@@ -34,6 +41,7 @@ pub fn gen_rs_for_fn_def_param(generator: &mut Generator, param: FnDefParam) -> 
     let mut rs = String::new();
 
     match param.param_type {
+        Type::SharedRef(_) | Type::MutRef(_) => {},
         _ => {
             rs.push_str("mut ");
         },

@@ -10,7 +10,11 @@ pub fn translate_fn_def(fn_def: parser::ast::FnDefNode) -> Result<FnDef> {
             .into_iter()
             .map(translate_fn_def_param)
             .collect::<Result<Vec<FnDefParam>>>()?,
-        return_type: None,
+        return_type: if let Some((_, return_type)) = fn_def.return_type {
+            Some(translate_type(return_type)?)
+        } else {
+            None
+        },
         body: fn_def
             .body
             .into_iter()
