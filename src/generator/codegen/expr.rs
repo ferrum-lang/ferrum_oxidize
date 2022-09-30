@@ -4,6 +4,7 @@ pub fn gen_rs_for_expr(generator: &mut Generator, expr: Expr) -> String {
     match expr {
         Expr::Literal(literal) => return gen_rs_for_lit(generator, literal),
         Expr::FnCall(fn_call) => return gen_rs_for_fn_call(generator, fn_call),
+        Expr::IdentLookup(ident_lookup) => return ident_lookup,
     }
 }
 

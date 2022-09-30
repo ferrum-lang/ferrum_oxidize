@@ -8,7 +8,7 @@ pub type ScopeTable = HashMap<String, ScopeRef>;
 pub enum ScopeRef {
     Fn {
         name: String,
-        generics: Option<Vec<GenericType>>,
+        generics: Option<Vec<GenericParam>>,
         params: Vec<FnDefParamNode>,
         return_type: Option<Type>,
     }

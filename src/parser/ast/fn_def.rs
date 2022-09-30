@@ -5,7 +5,7 @@ pub struct FnDefNode {
     pub pub_token: Option<Token>,
     pub fn_token: Token,
     pub name: Token,
-    pub generics: Option<Punctuated<GenericTypeNode, Token>>,
+    pub generics: Option<GenericParamsNode>,
     pub open_paren: Token,
     pub params: Punctuated<FnDefParamNode, Token>,
     pub close_paren: Token,

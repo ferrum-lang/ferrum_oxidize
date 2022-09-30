@@ -10,11 +10,9 @@ pub fn translate_expr(expr: parser::ast::ExprNode) -> Result<Expr> {
             let literal = translate_literal(literal)?;
             return Ok(Expr::Literal(literal));
         }
-        // parser::ast::Expr::IdentLookup(ident_lookup) => {
-        //     let ident_lookup = translate_ident_lookup(literal)?;
-        //     return Ok(Expr::IdentLookup(ident_lookup));
-        // },
-        _ => todo!("Cannot translate expression: {expr:#?}"),
+        parser::ast::Expr::IdentLookup(ident_lookup) => {
+            return Ok(Expr::IdentLookup(ident_lookup.name.literal));
+        },
     }
 }
 

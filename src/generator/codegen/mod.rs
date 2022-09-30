@@ -9,6 +9,9 @@ use fn_def::*;
 mod stmt;
 use stmt::*;
 
+mod r#type;
+use r#type::*;
+
 pub struct Generator {
     pub indent_count: usize,
 }

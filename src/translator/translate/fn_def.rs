@@ -25,7 +25,9 @@ pub fn translate_fn_def(fn_def: parser::ast::FnDefNode) -> Result<FnDef> {
 }
 
 pub fn translate_fn_def_param(fn_def_param: parser::ast::FnDefParamNode) -> Result<FnDefParam> {
-    todo!();
+    return Ok(FnDefParam {
+        name: fn_def_param.name.literal,
+        param_type: translate_type(fn_def_param.param_type)?,
+    });
 }
-
 

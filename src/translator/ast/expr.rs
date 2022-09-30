@@ -4,6 +4,7 @@ use super::*;
 pub enum Expr {
     FnCall(FnCall),
     Literal(Literal),
+    IdentLookup(String),
 }
 
 #[derive(Debug, Clone)]

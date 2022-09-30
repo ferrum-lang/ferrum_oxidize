@@ -8,7 +8,7 @@ pub use error::ParseError;
 mod parse;
 pub use parse::*;
 
-use crate::lexer::token::{Token, TokenKeyword, TokenLiteral, TokenType};
+use crate::lexer::token::*;
 use crate::Result;
 
 pub fn parse_to_ast(tokens: Vec<Token>) -> Result<FerrumFileAst> {
@@ -24,11 +24,11 @@ pub fn fill_project_scope_tables(project_ast: &mut FerrumProjectAst) {
                     scope.insert(fn_def.name.literal.clone(), ScopeRef::Fn {
                         name: fn_def.name.literal.clone(),
                         generics: fn_def.generics.clone().map(
-                            |g| g
+                            |g| g.params
                                 .take_values()
                                 .into_iter()
-                                .map(|g| g.generic_type)
-                                .collect::<Vec<GenericType>>()
+                                .map(|g| g.generic_param)
+                                .collect::<Vec<GenericParam>>()
                         ),
                         params: fn_def.params.clone().take_values(),
                         return_type: fn_def.return_type.clone().map(|r| r.1.typ),

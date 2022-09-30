@@ -42,8 +42,8 @@ pub use item::*;
 pub mod fn_def;
 pub use fn_def::*;
 
-pub mod generic;
-pub use generic::*;
+pub mod generics;
+pub use generics::*;
 
 pub mod scope;
 pub use scope::*;
