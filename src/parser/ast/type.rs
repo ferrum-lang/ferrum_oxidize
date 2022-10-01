@@ -24,8 +24,8 @@ pub enum Type {
 
     Scoped(Box<TypeNode>, Box<TypeNode>),
 
-    SharedRef(Box<TypeNode>),
-    MutRef(Box<TypeNode>),
+    SharedRef(SharedRefNode),
+    MutRef(MutRefNode),
 
     Managed(Box<TypeNode>),
 
@@ -45,6 +45,21 @@ pub struct GenericArgs {
     pub open_chevron: Token,
     pub args: Punctuated<Box<TypeNode>, Token>,
     pub close_chevron: Token,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct SharedRefNode {
+    pub ref_token: Token,
+    pub of: Box<TypeNode>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct MutRefNode {
+    pub ref_token: Token,
+    pub mut_token: Token,
+    pub of: Box<TypeNode>,
     pub span: Span,
 }
 

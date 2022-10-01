@@ -20,5 +20,13 @@ pub enum Expr {
     IdentLookup(IdentLookupNode),
     FnCall(FnCallNode),
     Literal(LiteralNode),
+    Ref(RefNode),
 }
 
+#[derive(Debug, Clone)]
+pub struct RefNode {
+    pub ref_token: Token,
+    pub mut_token: Option<Token>,
+    pub expr: Box<ExprNode>,
+    pub span: Span,
+}

@@ -13,6 +13,15 @@ pub fn translate_expr(expr: parser::ast::ExprNode) -> Result<Expr> {
         parser::ast::Expr::IdentLookup(ident_lookup) => {
             return Ok(Expr::IdentLookup(ident_lookup.name.literal));
         },
+        parser::ast::Expr::Ref(ref_node) => {
+            let expr = translate_expr(*ref_node.expr)?;
+            
+            if ref_node.mut_token.is_some() {
+                return Ok(Expr::MutRef(Box::new(expr)));
+            } else {
+                return Ok(Expr::SharedRef(Box::new(expr)));
+            }
+        },
     }
 }
 

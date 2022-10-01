@@ -5,6 +5,8 @@ pub enum Expr {
     FnCall(FnCall),
     Literal(Literal),
     IdentLookup(String),
+    SharedRef(Box<Expr>),
+    MutRef(Box<Expr>),
 }
 
 #[derive(Debug, Clone)]

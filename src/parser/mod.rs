@@ -126,4 +126,12 @@ impl Parser {
         let token = self.consume(token_type)?;
         return Ok(Some(token));
     }
+
+    fn consume_current(&mut self) -> Result<Token> {
+        let token = self.current()?;
+
+        self.index += 1;
+
+        return Ok(token);
+    }
 }

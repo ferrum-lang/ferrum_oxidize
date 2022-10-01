@@ -7,8 +7,9 @@ pub fn parse_statement(parser: &mut Parser) -> Result<StatementNode> {
 
     let stmt = match token.token_type {
         TokenType::Identifier => parse_ident_stmt(parser)?,
+        // TokenType::Keyword(TokenKeyword::Return) => parse_return_stmt(parser)?,
         TokenType::Keyword(TokenKeyword::Const) | TokenType::Keyword(TokenKeyword::Let) =>
-            parse_assign_stmt(parser)?,
+            parse_assign_decl(parser)?,
         _ => {
             let expr = parse_expr(parser)?;
 
@@ -41,16 +42,16 @@ pub fn parse_ident_stmt(parser: &mut Parser) -> Result<StatementNode> {
     }
 }
 
-pub fn parse_assign_stmt(parser: &mut Parser) -> Result<StatementNode> {
-    let (is_const, assign_token) = if parser.scan(&[TokenType::Keyword(TokenKeyword::Const)]) {
+pub fn parse_assign_decl(parser: &mut Parser) -> Result<StatementNode> {
+    let (is_const, decl_token) = if parser.scan(&[TokenType::Keyword(TokenKeyword::Const)]) {
         (true, parser.consume(TokenType::Keyword(TokenKeyword::Const))?)
     } else {
         (false, parser.consume(TokenType::Keyword(TokenKeyword::Let))?)
     };
 
-    let name = parser.consume(TokenType::Identifier)?;
+    let assign_pattern = parse_assign_pattern(parser)?;
 
-    let mut span = Span::from((assign_token.span, name.span));
+    let mut span = Span::from((decl_token.span, assign_pattern.span));
 
     let explicit_type = if parser.scan(&[TokenType::Colon]) {
         let colon = parser.consume(TokenType::Colon)?;
@@ -76,14 +77,28 @@ pub fn parse_assign_stmt(parser: &mut Parser) -> Result<StatementNode> {
 
     return Ok(StatementNode {
         span,
-        statement: Statement::Assign(AssignNode {
+        statement: Statement::Decl(DeclarationNode {
             span,
             is_const,
-            assign_token,
-            name,
+            decl_token,
+            assign_pattern,
             explicit_type,
             rhs_expr,
         }),
     });
+}
+
+pub fn parse_assign_pattern(parser: &mut Parser) -> Result<AssignPatternNode> {
+    let token = parser
+        .consume_current()
+        .with_context(|| format!("Expected some assign pattern to parse"))?;
+
+    match token.token_type {
+        TokenType::Identifier => return Ok(AssignPatternNode {
+            span: token.span,
+            assign_pattern: AssignPattern::Id(token),
+        }),
+        _ => todo!(),
+    }
 }
 

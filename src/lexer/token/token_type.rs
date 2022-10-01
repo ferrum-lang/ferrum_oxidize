@@ -54,7 +54,6 @@ pub enum TokenType {
     NotEquals,       // !=
 
     Ampersand,       // &
-    AmpersandMut,    // &mut
     DoubleAmpersand, // &&
 
     Pipe,       // |

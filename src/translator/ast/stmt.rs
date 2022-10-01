@@ -4,14 +4,19 @@ use super::*;
 pub enum Statement {
     Item(Item),
     Expr(Expr),
-    Assign(Assign),
+    Decl(Declaration),
 }
 
 #[derive(Debug, Clone)]
-pub struct Assign {
+pub struct Declaration {
     pub is_const: bool,
-    pub name: String,
+    pub assign_pattern: AssignPattern,
     pub explicit_type: Option<Type>,
     pub rhs: Option<Expr>,
+}
+
+#[derive(Debug, Clone)]
+pub enum AssignPattern {
+    Id(String),
 }
 

@@ -5,6 +5,8 @@ pub fn gen_rs_for_expr(generator: &mut Generator, expr: Expr) -> String {
         Expr::Literal(literal) => return gen_rs_for_lit(generator, literal),
         Expr::FnCall(fn_call) => return gen_rs_for_fn_call(generator, fn_call),
         Expr::IdentLookup(ident_lookup) => return ident_lookup,
+        Expr::SharedRef(expr) => return format!("&{}", gen_rs_for_expr(generator, *expr)),
+        Expr::MutRef(expr) => return format!("&mut {}", gen_rs_for_expr(generator, *expr)),
     }
 }
 

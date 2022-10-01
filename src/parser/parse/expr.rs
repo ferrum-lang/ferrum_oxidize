@@ -6,6 +6,7 @@ pub fn parse_expr(parser: &mut Parser) -> Result<ExprNode> {
         .with_context(|| format!("Expected some expr to parse"))?;
 
     match token.token_type {
+        TokenType::Ampersand => return parse_ref_expr(parser),
         TokenType::Identifier => return parse_ident_expr(parser),
         TokenType::Literal(_) => {
             let literal = parse_literal(parser)?;
@@ -19,9 +20,28 @@ pub fn parse_expr(parser: &mut Parser) -> Result<ExprNode> {
     }
 }
 
+pub fn parse_ref_expr(parser: &mut Parser) -> Result<ExprNode> {
+    let ref_token = parser.consume(TokenType::Ampersand)?;
+    let mut_token = parser.consume_if(TokenType::Keyword(TokenKeyword::Mut))?;
+
+    let expr = parse_expr(parser)?;
+
+    let span = Span::from((ref_token.span, expr.span));
+
+    return Ok(ExprNode {
+        expr: Expr::Ref(RefNode {
+            ref_token,
+            mut_token,
+            expr: Box::new(expr),
+            span,
+        }),
+        span,
+    });
+}
+
 pub fn parse_literal(parser: &mut Parser) -> Result<LiteralNode> {
     let token = parser
-        .current()
+        .consume_current()
         .with_context(|| format!("Expected some expr to parse"))?;
 
     let literal = if let TokenType::Literal(literal) = token.token_type {
@@ -29,8 +49,6 @@ pub fn parse_literal(parser: &mut Parser) -> Result<LiteralNode> {
     } else {
         Err(ParseError::UnexpectedToken(file!(), line!(), token.clone()))?
     };
-
-    parser.index += 1;
 
     match literal {
         TokenLiteral::Bool(is_true) => {

@@ -2,32 +2,35 @@ use super::*;
 
 pub fn parse_type(parser: &mut Parser) -> Result<TypeNode> {
     let token = parser
-        .current()
+        .consume_current()
         .with_context(|| format!("Expected some type to parse"))?;
 
     match token.token_type {
         TokenType::Primitive(TokenPrimitive::String) => {
-            parser.index += 1;
-
             return Ok(TypeNode {
                 span: token.span,
                 typ: Type::String(token),
-            });
+            })
         }
         TokenType::Ampersand => {
-            parser.index += 1;
-
-            if parser.scan(&[TokenType::Keyword(TokenKeyword::Mut)]) {
-                parser.index += 1;
-
+            if let Some(mut_token) = parser.consume_if(TokenType::Keyword(TokenKeyword::Mut))? {
                 return Ok(TypeNode {
                     span: token.span,
-                    typ: Type::MutRef(Box::new(parse_type(parser)?)),
+                    typ: Type::MutRef(MutRefNode {
+                        span: token.span,
+                        ref_token: token,
+                        mut_token,
+                        of: Box::new(parse_type(parser)?),
+                    }),
                 });
             } else {
                 return Ok(TypeNode {
                     span: token.span,
-                    typ: Type::SharedRef(Box::new(parse_type(parser)?)),
+                    typ: Type::SharedRef(SharedRefNode {
+                        span: token.span,
+                        ref_token: token,
+                        of: Box::new(parse_type(parser)?),
+                    }),
                 });
             }
         }

@@ -31,6 +31,10 @@ pub fn parse_file(parser: &mut Parser) -> Result<FerrumFileAst> {
 
 fn require_newline(parser: &mut Parser, line: usize) -> Result {
     if let Some(next) = parser.current().ok() {
+        if let TokenType::CloseBrace = next.token_type {
+            return Ok(());
+        }
+
         if next.span.from.line == line {
             Err(ParseError::NotExpectedNewline(file!(), line!(), next))?;
         }
