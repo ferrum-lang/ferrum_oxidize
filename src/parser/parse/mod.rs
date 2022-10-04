@@ -12,8 +12,18 @@ use stmt::*;
 mod r#type;
 use r#type::*;
 
-pub fn parse_file(parser: &mut Parser) -> Result<FerrumFileAst> {
-    let mut ast = FerrumFileAst::new();
+mod r#use;
+use r#use::*;
+
+use std::path::PathBuf;
+
+pub fn parse_file(
+    name: String,
+    path: PathBuf,
+    is_mod_root: bool,
+    parser: &mut Parser,
+) -> Result<FerrumFileAst> {
+    let mut ast = FerrumFileAst::new(name, path, is_mod_root);
 
     while parser.index < parser.tokens.len() {
         let item = parse_item(parser)?;
@@ -49,10 +59,18 @@ fn parse_item(parser: &mut Parser) -> Result<ItemNode> {
     let token = parser
         .current()
         .with_context(|| format!("Expected some item to parse"))?;
-    
+
     let item = match token.token_type {
+        TokenType::Keyword(TokenKeyword::Use) => {
+            let use_node = parse_use(parser, public)?;
+
+            ItemNode {
+                span: use_node.span,
+                item: Item::Use(use_node),
+            }
+        }
         TokenType::Keyword(TokenKeyword::Fn) => {
-            let fn_definition = fn_def::parse_fn_def(parser, public)?;
+            let fn_definition = parse_fn_def(parser, public)?;
 
             ItemNode {
                 span: fn_definition.span,

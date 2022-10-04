@@ -18,9 +18,7 @@ pub struct Generator {
 
 impl Generator {
     pub fn new() -> Self {
-        return Self {
-            indent_count: 0,
-        };
+        return Self { indent_count: 0 };
     }
 
     pub fn padding(&self) -> String {
@@ -66,7 +64,61 @@ pub fn gen_rs_for_file(generator: &mut Generator, file_ast: RustFileAst) -> Resu
 
 fn gen_rs_for_item(generator: &mut Generator, item: Item) -> String {
     match item {
+        Item::Use(use_node) => return gen_rs_for_use(generator, use_node),
+        Item::Mod(mod_node) => return gen_rs_for_mod(generator, mod_node),
         Item::FnDef(fn_def) => return gen_rs_for_fn_def(generator, fn_def),
     }
 }
 
+fn gen_rs_for_mod(generator: &mut Generator, mod_node: Mod) -> String {
+    let mut rs = String::new();
+
+    if mod_node.is_public {
+        rs.push_str("pub ");
+    }
+
+    rs.push_str("mod ");
+    rs.push_str(&mod_node.name);
+    rs.push_str(";\n");
+
+    return rs;
+}
+
+fn gen_rs_for_use(generator: &mut Generator, use_node: Use) -> String {
+    let mut rs = String::new();
+
+    if use_node.is_public {
+        rs.push_str("pub ");
+    }
+
+    rs.push_str("use ");
+    rs.push_str(&gen_rs_for_use_pattern(use_node.use_pattern));
+    rs.push_str(";\n");
+
+    return rs;
+}
+
+fn gen_rs_for_use_pattern(use_pattern: UsePattern) -> String {
+    match use_pattern {
+        UsePattern::Id(id) => return id,
+        UsePattern::Path(path) => {
+            return format!("{}::{}", path.parent, gen_rs_for_use_pattern(*path.rhs))
+        }
+        UsePattern::Wild => return String::from("*"),
+        UsePattern::Destruct(destruct) => {
+            let mut rs = String::from("{");
+
+            let fields: String = destruct
+                .fields
+                .into_iter()
+                .map(gen_rs_for_use_pattern)
+                .collect::<Vec<String>>()
+                .join(", ");
+            rs.push_str(&fields);
+
+            rs.push('}');
+
+            return rs;
+        }
+    }
+}

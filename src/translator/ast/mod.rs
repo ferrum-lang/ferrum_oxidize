@@ -10,6 +10,9 @@ pub use stmt::*;
 mod r#type;
 pub use r#type::*;
 
+mod r#use;
+pub use r#use::*;
+
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -30,6 +33,8 @@ pub struct RustFileAst {
 
 #[derive(Debug, Clone)]
 pub enum Item {
+    Use(Use),
+    Mod(Mod),
     FnDef(FnDef),
 }
 

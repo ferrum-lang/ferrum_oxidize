@@ -8,6 +8,7 @@ pub struct ItemNode {
 
 #[derive(Debug, Clone)]
 pub enum Item {
+    Use(UseNode),
     Statement(StatementNode),
     FnDef(FnDefNode),
 }
