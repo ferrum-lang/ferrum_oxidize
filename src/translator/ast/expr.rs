@@ -7,6 +7,7 @@ pub enum Expr {
     IdentLookup(String),
     SharedRef(Box<Expr>),
     MutRef(Box<Expr>),
+    Deref(Box<Expr>),
 }
 
 #[derive(Debug, Clone)]

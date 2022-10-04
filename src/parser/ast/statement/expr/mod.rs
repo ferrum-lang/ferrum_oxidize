@@ -21,6 +21,7 @@ pub enum Expr {
     FnCall(FnCallNode),
     Literal(LiteralNode),
     Ref(RefNode),
+    Deref(DerefNode),
 }
 
 #[derive(Debug, Clone)]
@@ -30,3 +31,11 @@ pub struct RefNode {
     pub expr: Box<ExprNode>,
     pub span: Span,
 }
+
+#[derive(Debug, Clone)]
+pub struct DerefNode {
+    pub deref_token: Token,
+    pub expr: Box<ExprNode>,
+    pub span: Span,
+}
+

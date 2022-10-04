@@ -7,6 +7,7 @@ pub fn parse_expr(parser: &mut Parser) -> Result<ExprNode> {
 
     match token.token_type {
         TokenType::Ampersand => return parse_ref_expr(parser),
+        TokenType::Asterisk => return parse_deref_expr(parser),
         TokenType::Identifier => return parse_ident_expr(parser),
         TokenType::Literal(_) => {
             let literal = parse_literal(parser)?;
@@ -18,6 +19,23 @@ pub fn parse_expr(parser: &mut Parser) -> Result<ExprNode> {
         },
         _ => Err(ParseError::UnexpectedToken(file!(), line!(), token))?,
     }
+}
+
+pub fn parse_deref_expr(parser: &mut Parser) -> Result<ExprNode> {
+    let deref_token = parser.consume(TokenType::Asterisk)?;
+
+    let expr = parse_expr(parser)?;
+
+    let span = Span::from((deref_token.span, expr.span));
+
+    return Ok(ExprNode {
+        expr: Expr::Deref(DerefNode {
+            deref_token,
+            expr: Box::new(expr),
+            span,
+        }),
+        span,
+    });
 }
 
 pub fn parse_ref_expr(parser: &mut Parser) -> Result<ExprNode> {

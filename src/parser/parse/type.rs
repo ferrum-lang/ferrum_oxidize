@@ -34,6 +34,49 @@ pub fn parse_type(parser: &mut Parser) -> Result<TypeNode> {
                 });
             }
         }
-        _ => todo!(),
+        TokenType::DoubleAmpersand => {
+            let span1 = Span::from((token.span.from, token.span.from));
+            let span2 = Span::from((token.span.to, token.span.to));
+
+            return Ok(TypeNode {
+                span: span1,
+                typ: Type::SharedRef(SharedRefNode {
+                    span: span1,
+                    ref_token: Token {
+                        span: span1,
+                        literal: String::from("&"),
+                        token_type: TokenType::Ampersand,
+                    },
+                    of: Box::new(TypeNode {
+                        span: span2,
+                        typ: if let Some(mut_token) =
+                            parser.consume_if(TokenType::Keyword(TokenKeyword::Mut))?
+                        {
+                            Type::MutRef(MutRefNode {
+                                span: Span::from((span2, mut_token.span)),
+                                ref_token: Token {
+                                    span: span2,
+                                    literal: String::from("&"),
+                                    token_type: TokenType::Ampersand,
+                                },
+                                mut_token,
+                                of: Box::new(parse_type(parser)?),
+                            })
+                        } else {
+                            Type::SharedRef(SharedRefNode {
+                                span: span2,
+                                ref_token: Token {
+                                    span: span2,
+                                    literal: String::from("&"),
+                                    token_type: TokenType::Ampersand,
+                                },
+                                of: Box::new(parse_type(parser)?),
+                            })
+                        },
+                    }),
+                }),
+            });
+        }
+        _ => todo!("{token:#?}"),
     }
 }

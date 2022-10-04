@@ -7,6 +7,7 @@ pub fn gen_rs_for_expr(generator: &mut Generator, expr: Expr) -> String {
         Expr::IdentLookup(ident_lookup) => return ident_lookup,
         Expr::SharedRef(expr) => return format!("&{}", gen_rs_for_expr(generator, *expr)),
         Expr::MutRef(expr) => return format!("&mut {}", gen_rs_for_expr(generator, *expr)),
+        Expr::Deref(expr) => return format!("*{}", gen_rs_for_expr(generator, *expr)),
     }
 }
 

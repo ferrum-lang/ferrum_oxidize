@@ -22,6 +22,10 @@ pub fn translate_expr(translator: &mut Translator, expr: parser::ast::ExprNode) 
                 return Ok(Expr::SharedRef(Box::new(expr)));
             }
         },
+        parser::ast::Expr::Deref(deref_node) => {
+            let expr = translate_expr(translator, *deref_node.expr)?;
+            return Ok(Expr::Deref(Box::new(expr)));
+        },
     }
 }
 
