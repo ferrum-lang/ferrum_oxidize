@@ -34,6 +34,12 @@ pub fn translate_expr(translator: &mut Translator, expr: parser::ast::ExprNode) 
 }
 
 pub fn translate_fn_call(translator: &mut Translator, fn_call: parser::ast::FnCallNode) -> Result<FnCall> {
+    if let None = translator.find_in_scope(&fn_call.name.literal) {
+        if fn_call.name.literal.as_str() != "print" {
+            todo!("{fn_call:#?}");
+        }
+    }
+
     return Ok(FnCall {
         name: fn_call.name.literal,
         args: fn_call

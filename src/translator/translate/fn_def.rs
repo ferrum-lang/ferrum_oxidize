@@ -54,29 +54,33 @@ pub fn translate_fn_def(
         params.push(translate_fn_def_param(translator, param)?);
     }
 
+    translator.scope_stack.push(fn_def.scope);
+
+    let mut body = vec![];
+
+    for item in fn_def.body {
+        match item.item.clone() {
+            parser::ast::Item::Statement(stmt) => body.push(translate_stmt(translator, stmt)?),
+            _ => {
+                for item in translate_item(translator, FeShared::get(&item).clone())? {
+                    body.push(Statement::Item(item));
+                }
+            }
+        }
+    }
+
+    translator.scope_stack.pop();
+
     return Ok(FnDef {
         is_public: fn_def.pub_token.is_some(),
         name: fn_def.name.literal,
         params,
+        body,
         return_type: if let Some((_, return_type)) = fn_def.return_type {
             Some(translate_type(translator, return_type)?)
         } else {
             None
         },
-        body: fn_def
-            .body
-            .into_iter()
-            .map(|item| match item.item.clone() {
-                parser::ast::Item::Statement(stmt) => Ok(vec![translate_stmt(translator, stmt)?]),
-                _ => Ok(translate_item(translator, FeShared::get(&item).clone())?
-                    .into_iter()
-                    .map(|item| Statement::Item(item))
-                    .collect::<Vec<Statement>>()),
-            })
-            .collect::<Result<Vec<Vec<Statement>>>>()?
-            .into_iter()
-            .flatten()
-            .collect::<Vec<Statement>>(),
     });
 }
 
