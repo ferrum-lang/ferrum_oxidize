@@ -3,7 +3,7 @@ use super::*;
 use anyhow::ensure;
 
 pub fn create_and_write_to_cargo_project(
-    root_file: GenFile,
+    gen_project: GenProject,
     build_dir: PathBuf,
 ) -> Result<CargoProject> {
     verify_cargo_installed()?;
@@ -23,14 +23,14 @@ pub fn create_and_write_to_cargo_project(
     write_gen_file(
         &build_dir,
         String::from("src"),
-        name.clone(),
-        root_file,
+        GenNode::File(gen_project.main_file),
     )?;
 
-    return Ok(CargoProject {
-        build_dir,
-        name,
-    });
+    for sibling in gen_project.siblings {
+        write_gen_file(&build_dir, String::from("src"), sibling)?;
+    }
+
+    return Ok(CargoProject { build_dir, name });
 }
 
 fn verify_cargo_installed() -> Result {
@@ -70,28 +70,24 @@ fn create_new_cargo_project(build_dir: &PathBuf) -> Result {
     return Ok(());
 }
 
-fn write_gen_file(build_dir: &PathBuf, pre: String, name: String, file: GenFile) -> Result {
-    let filename = if file.mods.is_empty() || name.as_str() == "main" {
-        format!("{name}.rs")
-    } else {
-        let _ = std::fs::create_dir(build_dir.join(&pre).join(&name));
+fn write_gen_file(build_dir: &PathBuf, pre: String, node: GenNode) -> Result {
+    match node {
+        GenNode::Dir(gen_dir) => {
+            let path = build_dir.join(&pre).join(&gen_dir.name);
 
-        format!("{name}/mod.rs")
+            std::fs::create_dir(path)?;
+
+            for node in gen_dir.files {
+                write_gen_file(build_dir, format!("{pre}/{}", gen_dir.name), node)?;
+            }
+        }
+        GenNode::File(gen_file) => {
+            let filename = format!("{}.rs", gen_file.name);
+            let path = build_dir.join(&pre).join(filename);
+
+            std::fs::write(path, gen_file.code)?;
+        }
     };
-
-    let path = build_dir.join(&pre).join(filename);
-
-    std::fs::write(path, file.code)?;
-
-    let pre = if name.as_str() == "main" {
-        format!("{pre}")
-    } else {
-        format!("{pre}/{name}")
-    };
-
-    for (name, file) in file.mods.into_iter() {
-        write_gen_file(build_dir, pre.clone(), name, file)?;
-    }
 
     return Ok(());
 }

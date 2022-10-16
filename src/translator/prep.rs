@@ -4,24 +4,28 @@ use crate::lexer;
 use crate::punctuated::Punctuated;
 use crate::span::Span;
 
+use std::collections::HashSet;
+
 pub fn prepare_fe_ast_for_translation(
-    mut fe_ast: parser::ast::FerrumProjectAst,
-) -> Result<parser::ast::FerrumProjectAst> {
-    move_top_stmts_to_main(&mut fe_ast);
+    root_node: &mut FeShared<parser::ast::FerrumModNode>,
+) -> Result {
+    match &mut root_node.file {
+        parser::ast::FerrumModNodeFile::File(file) => move_top_stmts_to_main(file),
+        parser::ast::FerrumModNodeFile::Dir(_) => todo!(),
+    }
+    ensure_no_top_stmts(&root_node)?;
 
-    ensure_no_top_stmts(&fe_ast)?;
-
-    return Ok(fe_ast);
+    return Ok(());
 }
 
-fn move_top_stmts_to_main(fe_ast: &mut parser::ast::FerrumProjectAst) {
-    if has_main_fn(&fe_ast) {
+fn move_top_stmts_to_main(file_ast: &mut parser::ast::FerrumFileAst) {
+    if has_main_fn(&file_ast) {
         return;
     }
 
     let mut items = vec![];
 
-    std::mem::swap(&mut fe_ast.root.file.items, &mut items);
+    std::mem::swap(&mut file_ast.items, &mut items);
 
     let mut iter = items.into_iter();
 
@@ -29,20 +33,18 @@ fn move_top_stmts_to_main(fe_ast: &mut parser::ast::FerrumProjectAst) {
     while let Some(node) = iter.next() {
         match node.item {
             parser::ast::Item::Statement(_) => stmts.push(node),
-            _ => fe_ast.root.file.items.push(node),
+            _ => file_ast.items.push(node),
         }
     }
 
-    let span = Span::from((fe_ast.root.file.span.to.line + 1, 1));
+    let span = Span::from((file_ast.span.to.line + 1, 1));
 
-    fe_ast.root.file.items.push(parser::ast::ItemNode {
+    let item = FeShared::new(parser::ast::ItemNode {
         item: parser::ast::Item::FnDef(parser::ast::FnDefNode {
             pub_token: None,
             fn_token: lexer::token::Token {
                 literal: String::from("fn"),
-                token_type: lexer::token::TokenType::Keyword(
-                    lexer::token::TokenKeyword::Fn
-                ),
+                token_type: lexer::token::TokenType::Keyword(lexer::token::TokenKeyword::Fn),
                 span,
             },
             name: lexer::token::Token {
@@ -74,15 +76,17 @@ fn move_top_stmts_to_main(fe_ast: &mut parser::ast::FerrumProjectAst) {
                 token_type: lexer::token::TokenType::CloseBrace,
                 span,
             },
-            scope: fe_ast.root.file.scope.clone(),
+            scope: file_ast.scope.clone(),
             span,
         }),
         span,
     });
+
+    file_ast.items.push(item);
 }
 
-fn has_main_fn(fe_ast: &parser::ast::FerrumProjectAst) -> bool {
-    for node in &fe_ast.root.file.items {
+fn has_main_fn(file_ast: &parser::ast::FerrumFileAst) -> bool {
+    for node in &file_ast.items {
         if let parser::ast::Item::FnDef(fn_def) = &node.item {
             if fn_def.name.token_type == lexer::token::TokenType::Identifier
                 && fn_def.name.literal.as_str() == "main"
@@ -95,21 +99,42 @@ fn has_main_fn(fe_ast: &parser::ast::FerrumProjectAst) -> bool {
     return false;
 }
 
-fn ensure_no_top_stmts(fe_ast: &parser::ast::FerrumProjectAst) -> Result {
-    fn ensure_no_top_stmts_in_node(fe_node: &parser::ast::FerrumProjectAstNode) -> Result {
-        for node in &fe_node.file.items {
-            if let parser::ast::Item::Statement(stmt) = &node.item {
-                Err(TranslateError::InvalidTopLevelStatement(
-                    file!(),
-                    line!(),
-                    stmt.clone(),
-                ))?;
+fn ensure_no_top_stmts(root_node: &FeShared<parser::ast::FerrumModNode>) -> Result {
+    fn rec_ensure_no_top_stmts(
+        node: &FeShared<parser::ast::FerrumModNode>,
+        visited: &mut HashSet<usize>,
+    ) -> Result {
+        if visited.contains(&node.id) {
+            return Ok(());
+        }
+
+        match &node.file {
+            parser::ast::FerrumModNodeFile::File(file) => {
+                for item in &file.items {
+                    if let parser::ast::Item::Statement(stmt) = &item.item {
+                        Err(TranslateError::InvalidTopLevelStatement(
+                            file!(),
+                            line!(),
+                            stmt.clone(),
+                        ))?;
+                    }
+                }
             }
+            parser::ast::FerrumModNodeFile::Dir(nodes) => {
+                for (_, node) in nodes {
+                    rec_ensure_no_top_stmts(node, visited)?;
+                }
+            }
+        }
+
+        visited.insert(node.id);
+
+        for (_, sibling_ref) in &node.sibling_refs {
+            rec_ensure_no_top_stmts(sibling_ref, visited)?;
         }
 
         return Ok(());
     }
 
-    return ensure_no_top_stmts_in_node(&fe_ast.root);
+    return rec_ensure_no_top_stmts(root_node, &mut HashSet::new());
 }
-

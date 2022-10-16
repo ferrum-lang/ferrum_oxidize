@@ -433,9 +433,10 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
                 _ => tokens.push(Token::new(TokenType::Colon, c, (line, column))),
             },
 
+            // Tilde 
             '~' => tokens.push(Token::new(TokenType::Tilde, c, (line, column))),
 
-            // QuestionMark, DoubleQuestionMark, or QuestionMarkPeriod
+            // QuestionMark or DoubleQuestionMark
             '?' => match chars.peek() {
                 Some(&'?') => {
                     let from = SpanPoint { line, column };
@@ -447,42 +448,20 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
                         (from, (line, column)),
                     ));
                 }
-                Some(&'.') => {
-                    let from = SpanPoint { line, column };
-                    column += 1;
-                    chars.next();
-                    tokens.push(Token::new(
-                        TokenType::QuestionMarkPeriod,
-                        "?.",
-                        (from, (line, column)),
-                    ));
-                }
                 _ => tokens.push(Token::new(TokenType::QuestionMark, c, (line, column))),
             },
 
-            // Period, DoublePeriod, or DoublePeriodEquals
+            // Period or DoublePeriod
             '.' => match chars.peek() {
                 Some(&'.') => {
                     let from = SpanPoint { line, column };
                     column += 1;
                     chars.next();
-
-                    match chars.peek() {
-                        Some(&'=') => {
-                            column += 1;
-                            chars.next();
-                            tokens.push(Token::new(
-                                TokenType::DoublePeriodEquals,
-                                "..=",
-                                (from, (line, column)),
-                            ));
-                        }
-                        _ => tokens.push(Token::new(
-                            TokenType::DoublePeriod,
-                            "..",
-                            (from, (line, column)),
-                        )),
-                    }
+                    tokens.push(Token::new(
+                        TokenType::DoublePeriod,
+                        "..",
+                        (from, (line, column)),
+                    ));
                 }
                 _ => tokens.push(Token::new(TokenType::Period, c, (line, column))),
             },

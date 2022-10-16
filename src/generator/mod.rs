@@ -16,26 +16,43 @@ use std::{env, path::PathBuf, collections::HashMap};
 const RUNTIME_RS: &'static str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/generated/runtime.rs"));
 
+pub struct GenProject {
+    pub main_file: GenFile,
+    pub siblings: Vec<GenNode>,
+}
+
+#[derive(Debug, Clone)]
+pub enum GenNode {
+    File(GenFile),
+    Dir(GenDir),
+}
+
 #[derive(Debug, Clone)]
 pub struct GenFile {
-    code: String,
-    mods: HashMap<String, GenFile>,
+    pub name: String,
+    pub code: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct GenDir {
+    pub name: String,
+    pub files: Vec<GenNode>,
 }
 
 pub fn generate_cargo_project(
-    rust_project_ast: RustProjectAst,
+    rust_project: RustProject,
     build_dir: PathBuf,
 ) -> Result<CargoProject> {
-    let mut root_file = generate_rust_code(rust_project_ast.root)?;
+    let mut gen_project = generate_rust_code(rust_project)?;
 
-    root_file.code.insert_str(0, "mod ferrum;\n");
+    gen_project.main_file.code.insert_str(0, "mod ferrum;\n");
 
     println!(
         "\n*** Generated Rust Code ***\n{}\n*** End of Generated Code ***",
-        root_file.code.trim()
+        gen_project.main_file.code.trim()
     );
 
-    let project = create_and_write_to_cargo_project(root_file, build_dir)?;
+    let project = create_and_write_to_cargo_project(gen_project, build_dir)?;
 
     return Ok(project);
 }

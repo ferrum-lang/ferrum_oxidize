@@ -64,7 +64,7 @@ pub fn parse_fn_def(parser: &mut Parser, pub_token: Option<Token>) -> Result<FnD
 
     while !parser.scan(&[TokenType::CloseBrace]) {
         let item = parse_item(parser)?;
-        body.push(item);
+        body.push(FeShared::new(item));
     }
 
     let close_brace = parser.consume(TokenType::CloseBrace)?;

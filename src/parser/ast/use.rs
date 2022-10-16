@@ -4,6 +4,7 @@ use super::*;
 pub struct UseNode {
     pub public: Option<Token>,
     pub use_token: Token,
+    pub pattern_prefix: Option<PatternPrefix>,
     pub use_pattern: UsePatternNode<InitUsePattern>,
     pub span: Span,
 }
@@ -21,6 +22,32 @@ impl<T: Into<UsePattern>> UsePatternNode<T> {
             span: self.span,
         };
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum PatternPrefix {
+    Root(RootPrefixNode),
+    Rel(RelPrefixNode),
+}
+
+#[derive(Debug, Clone)]
+pub struct RootPrefixNode {
+    pub tilde: Token,
+    pub forward_slash: Token,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct RelPrefixNode {
+    pub parent_dirs: Vec<ParentDirPrefixNode>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct ParentDirPrefixNode {
+    pub double_period: Token,
+    pub forward_slash: Token,
+    pub span: Span,
 }
 
 #[derive(Debug, Clone)]

@@ -15,15 +15,15 @@ pub use error::OxidizeError;
 pub use result::Result;
 pub use target::Target;
 
-use parser::ast::{FerrumFileAst, FerrumProjectAst, FerrumProjectAstNode};
+use parser::ast::{self, FerrumFileAst, FerrumModNode, FerrumModNodeFile};
 
-use translator::ast::RustProjectAst;
+use translator::ast::RustProject;
 
 use cargo::project::CargoProject;
 
-use std::{fs, path::PathBuf};
+use std::{collections::HashMap, fs, path::PathBuf};
 
-use crate::parser::ast::ScopeTable;
+use ferrum_runtime::prelude::FeShared;
 
 #[derive(Debug, Clone)]
 pub struct FerrumProject {
@@ -68,110 +68,120 @@ pub fn build_to_cargo_project(entry_file: PathBuf, build_dir: PathBuf) -> Result
     return Ok(cargo_project);
 }
 
-pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FerrumProjectAst> {
+pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FeShared<FerrumModNode>> {
     let name = if let Some(filename) = entry_file.file_stem() {
         filename.to_string_lossy().to_string()
     } else {
         todo!("Invalid file: {:?}", entry_file);
     };
 
-    let entry_ast = compile_to_ferrum_file_ast(entry_file, name, true)?;
-
-    let mut project_ast = FerrumProjectAst {
-        root: FerrumProjectAstNode {
-            file: entry_ast,
-            nodes: vec![],
-        },
-    };
+    let mut root_node = FeShared::new(compile_to_ferrum_mod_node(entry_file, name)?);
 
     fn rec_compile_file_into_node(
         is_dir: bool,
         filepath: PathBuf,
         name: String,
-        is_mod_root: bool,
-    ) -> Result<FerrumProjectAstNode> {
-        if is_dir {
-            let mut mod_file = None;
-            let mut nodes = vec![];
-
-            for file in filepath.read_dir()? {
-                let file = file?;
-                let filename = file.file_name().to_string_lossy().to_string();
-
-                let filepath = filepath.join(&filename);
-
-                if file.file_type()?.is_dir() {
-                    let node = rec_compile_file_into_node(true, filepath, filename, false)?;
-                    nodes.push(node);
-                } else {
-                    if !filename.ends_with(".fe") {
-                        continue;
-                    }
-
-                    if filename == "_self.fe" {
-                        let name = String::from("mod");
-                        let node = rec_compile_file_into_node(false, filepath, name, true)?;
-                        mod_file = Some(node.file);
-                    } else {
-                        let name = filename[..filename.len() - 3].to_string();
-
-                        let node = rec_compile_file_into_node(false, filepath, name, false)?;
-                        nodes.push(node);
-                    }
-                }
-            }
-
-            let file = mod_file.unwrap_or_else(|| FerrumFileAst {
-                name,
-                path: filepath.join("_self.fe"),
-                is_mod_root: true,
-                items: nodes
-                    .iter()
-                    .map(|node| parser::ast::ItemNode {
-                        item: parser::ast::Item::Use(parser::ast::UseNode {
-                            public: Some(lexer::token::Token {
-                                literal: String::from("pub"),
-                                token_type: lexer::token::TokenType::Keyword(
-                                    lexer::token::TokenKeyword::Pub,
-                                ),
-                                span: span::Span::from((0, 0)),
-                            }),
-                            use_token: lexer::token::Token {
-                                literal: String::from("use"),
-                                token_type: lexer::token::TokenType::Keyword(
-                                    lexer::token::TokenKeyword::Use,
-                                ),
-                                span: span::Span::from((0, 0)),
-                            },
-                            use_pattern: parser::ast::UsePatternNode {
-                                use_pattern: parser::ast::InitUsePattern::Id(lexer::token::Token {
-                                    literal: node.file.name.clone(),
-                                    token_type: lexer::token::TokenType::Identifier,
-                                    span: span::Span::from((0, 0)),
-                                }),
-                                span: span::Span::from((0, 0)),
-                            },
-                            span: span::Span::from((0, 0)),
-                        }),
-                        span: span::Span::from((0, 0)),
-                    })
-                    .collect(),
-                scope: ScopeTable::new(),
-                span: span::Span::from((0, 0)),
-            });
-
-            return Ok(FerrumProjectAstNode { file, nodes });
+    ) -> Result<FeShared<FerrumModNode>> {
+        if !is_dir {
+            let node = compile_to_ferrum_mod_node(filepath, name)?;
+            return Ok(FeShared::new(node));
         }
 
-        let file_ast = compile_to_ferrum_file_ast(filepath, name, is_mod_root)?;
+        let mut dir_node = FeShared::new(FerrumModNode::new(
+            name,
+            filepath.clone(),
+            FerrumModNodeFile::Dir(HashMap::new()),
+        ));
 
-        return Ok(FerrumProjectAstNode {
-            file: file_ast,
-            nodes: vec![],
-        });
+        let mut nodes = HashMap::new();
+        let mut seen_pkg = false;
+
+        for file in filepath.read_dir()? {
+            let file = file?;
+            let filename = file.file_name().to_string_lossy().to_string();
+
+            let filepath = filepath.join(&filename);
+
+            if file.file_type()?.is_dir() {
+                let mut node = rec_compile_file_into_node(true, filepath, filename.clone())?;
+                node.parent_ref = Some(Box::new(FeShared::share(&dir_node)));
+                nodes.insert(filename, node);
+            } else {
+                if !filename.ends_with(".fe") {
+                    continue;
+                }
+
+                let name = filename[..filename.len() - 3].to_string();
+
+                if name.as_str() == "_pkg" {
+                    seen_pkg = true;
+                }
+
+                let mut node = rec_compile_file_into_node(false, filepath, name.clone())?;
+                node.parent_ref = Some(Box::new(FeShared::share(&dir_node)));
+                nodes.insert(name, node);
+            }
+        }
+
+        if !seen_pkg {
+            let pkg_name = String::from("_pkg");
+
+            let mut pkg_file = FerrumFileAst::new();
+            for node_name in nodes.keys() {
+                pkg_file.items.push(FeShared::new(ast::ItemNode {
+                    item: ast::Item::Use(ast::UseNode {
+                        pattern_prefix: None,
+                        public: Some(ast::Token::new(
+                            lexer::token::TokenType::Keyword(lexer::token::TokenKeyword::Pub),
+                            "pub",
+                            span::Span::from((0, 0)),
+                        )),
+                        use_token: ast::Token::new(
+                            lexer::token::TokenType::Keyword(lexer::token::TokenKeyword::Use),
+                            "use",
+                            span::Span::from((0, 0)),
+                        ),
+                        use_pattern: ast::UsePatternNode {
+                            use_pattern: ast::InitUsePattern::Id(ast::Token::new(
+                                lexer::token::TokenType::Identifier,
+                                node_name,
+                                span::Span::from((0, 0)),
+                            )),
+                            span: span::Span::from((0, 0)),
+                        },
+                        span: span::Span::from((0, 0)),
+                    }),
+                    span: span::Span::from((0, 0)),
+                }));
+            }
+
+            let pkg_node = FerrumModNode::new(
+                pkg_name.clone(),
+                filepath.join("_pkg.fe"),
+                FerrumModNodeFile::File(pkg_file),
+            );
+
+            nodes.insert(pkg_name, FeShared::new(pkg_node));
+        }
+
+        for (name1, node1) in &nodes {
+            let mut node1 = FeShared::share(node1);
+
+            for (name2, node2) in &nodes {
+                if name1 != name2 {
+                    node1
+                        .sibling_refs
+                        .insert(name2.clone(), FeShared::share(node2));
+                }
+            }
+        }
+
+        dir_node.file = FerrumModNodeFile::Dir(nodes);
+
+        return Ok(dir_node);
     }
 
-    if let Some(dir) = project_ast.root.file.path.parent() {
+    if let Some(dir) = FeShared::share(&root_node).path.parent() {
         for file in dir.read_dir()? {
             let file = file?;
             let filename = file.file_name().to_string_lossy().to_string();
@@ -183,10 +193,10 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FerrumProjec
             let filepath = dir.join(&filename);
 
             if file.file_type()?.is_dir() {
-                project_ast
-                    .root
-                    .nodes
-                    .push(rec_compile_file_into_node(true, filepath, filename, false)?);
+                let mut node = rec_compile_file_into_node(true, filepath, filename.clone())?;
+                node.sibling_refs
+                    .insert(root_node.name.clone(), FeShared::share(&root_node));
+                root_node.sibling_refs.insert(filename, node);
             } else {
                 if !filename.ends_with(".fe") {
                     continue;
@@ -194,50 +204,60 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FerrumProjec
 
                 let name = filename[..filename.len() - 3].to_string();
 
-                if name != project_ast.root.file.name {
-                    project_ast
-                        .root
-                        .nodes
-                        .push(rec_compile_file_into_node(false, filepath, name, false)?);
+                if name != root_node.name {
+                    let mut node = rec_compile_file_into_node(false, filepath, name.clone())?;
+                    node.sibling_refs
+                        .insert(root_node.name.clone(), FeShared::share(&root_node));
+                    root_node.sibling_refs.insert(name, node);
+                }
+            }
+        }
+
+        for (name1, node1) in &root_node.sibling_refs {
+            let mut node1 = FeShared::share(node1);
+
+            for (name2, node2) in &root_node.sibling_refs {
+                if name1 != name2 {
+                    node1
+                        .sibling_refs
+                        .insert(name2.clone(), FeShared::share(node2));
                 }
             }
         }
     }
 
-    parser::fill_project_scope_tables(&mut project_ast)?;
+    parser::fill_project_node_scope(&mut root_node)?;
 
-    println!("\nAST: {project_ast:#?}\n");
+    // println!("\nAST: {root_node:#?}\n");
 
-    return Ok(project_ast);
+    return Ok(root_node);
 }
 
-pub fn compile_to_ferrum_file_ast(
-    file: PathBuf,
-    name: String,
-    is_mod_root: bool,
-) -> Result<FerrumFileAst> {
+pub fn compile_to_ferrum_mod_node(file: PathBuf, name: String) -> Result<FerrumModNode> {
     let path = file.to_path_buf();
 
     let content = fs::read_to_string(file)?;
     let tokens = lexer::lex_into_tokens(content)?;
 
-    println!("\nTokens: {tokens:#?}\n");
+    // println!("\nTokens: {tokens:#?}\n");
 
-    let file_ast = parser::parse_to_ast(name, path, is_mod_root, tokens)?;
+    let file_ast = parser::parse_to_ast(tokens)?;
 
-    return Ok(file_ast);
+    let node = FerrumModNode::new(name, path, FerrumModNodeFile::File(file_ast));
+
+    return Ok(node);
 }
 
-pub fn translate_to_rust_ast(ferrum_ast: FerrumProjectAst) -> Result<RustProjectAst> {
+pub fn translate_to_rust_ast(ferrum_ast: FeShared<FerrumModNode>) -> Result<RustProject> {
     let rs_ast = translator::translate_to_rust(ferrum_ast)?;
 
-    println!("\nRust AST: {rs_ast:#?}\n");
+    // println!("\nRust AST: {rs_ast:#?}\n");
 
     return Ok(rs_ast);
 }
 
 pub fn generate_cargo_project(
-    rust_ast: RustProjectAst,
+    rust_ast: RustProject,
     build_dir: PathBuf,
 ) -> Result<CargoProject> {
     return Ok(generator::generate_cargo_project(rust_ast, build_dir)?);

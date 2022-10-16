@@ -16,14 +16,21 @@ pub use r#use::*;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
-pub struct RustProjectAst {
-    pub root: RustProjectAstNode,
+pub struct RustProject {
+    pub main_file: RustFileAst,
+    pub siblings: HashMap<String, RustModNode>,
 }
 
 #[derive(Debug, Clone)]
-pub struct RustProjectAstNode {
-    pub file: RustFileAst,
-    pub mods: HashMap<String, RustProjectAstNode>,
+pub struct RustModNode {
+    pub name: String,
+    pub file: RustModNodeFile,
+}
+
+#[derive(Debug, Clone)]
+pub enum RustModNodeFile {
+    File(RustFileAst),
+    Dir(HashMap<String, RustModNode>),
 }
 
 #[derive(Debug, Clone)]

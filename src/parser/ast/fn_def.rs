@@ -11,7 +11,7 @@ pub struct FnDefNode {
     pub close_paren: Token,
     pub return_type: Option<(Token, TypeNode)>,
     pub open_brace: Token,
-    pub body: Vec<ItemNode>,
+    pub body: Vec<FeShared<ItemNode>>,
     pub close_brace: Token,
     pub scope: ScopeTable,
     pub span: Span,

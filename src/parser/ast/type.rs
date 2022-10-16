@@ -30,7 +30,7 @@ pub enum Type {
     Managed(Box<TypeNode>),
 
     Optional(Box<TypeNode>),
-    Result(Box<TypeNode>),
+    Result(Option<Box<TypeNode>>),
 }
 
 #[derive(Debug, Clone)]

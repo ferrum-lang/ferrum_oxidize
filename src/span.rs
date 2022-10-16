@@ -40,6 +40,15 @@ impl From<(Span, Span)> for Span {
     }
 }
 
+impl From<(Option<Span>, Span)> for Span {
+    fn from(values: (Option<Span>, Span)) -> Self {
+        return Self {
+            from: values.0.unwrap_or(values.1).from,
+            to: values.1.to,
+        };
+    }
+}
+
 #[derive(Clone, Debug, Copy)]
 pub struct SpanPoint {
     pub line: usize,

@@ -14,7 +14,7 @@ pub enum TokenType {
     Primitive(TokenPrimitive),
 
     Identifier, // Starts with lowercase letter
-    TypeName, // Starts with uppercase letter
+    TypeName,   // Starts with uppercase letter
 
     TemplateStringStart,
     TemplateStringMiddle,
@@ -36,15 +36,13 @@ pub enum TokenType {
     Colon,       // :
     DoubleColon, // ::
 
-    Tilde, // ~
+    Tilde,             // ~
 
     QuestionMark,       // ?
     DoubleQuestionMark, // ??
-    QuestionMarkPeriod, // ?.
 
-    Period,             // .
-    DoublePeriod,       // ..
-    DoublePeriodEquals, // ..=
+    Period,                   // .
+    DoublePeriod,             // ..
 
     Equals,       // =
     DoubleEquals, // ==

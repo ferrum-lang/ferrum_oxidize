@@ -32,21 +32,53 @@ impl Generator {
     }
 }
 
-pub fn generate_rust_code(ast_node: RustProjectAstNode) -> Result<GenFile> {
-    let mut generator = Generator::new();
-    let rs = gen_rs_for_file(&mut generator, ast_node.file)?;
+pub fn generate_rust_code(project: RustProject) -> Result<GenProject> {
+    fn rec_generate_rust_code(node: RustModNode) -> Result<GenNode> {
+        match node.file {
+            RustModNodeFile::File(file) => {
+                let mut generator = Generator::new();
+                let rs = gen_rs_for_file(&mut generator, file)?;
 
-    let mut file = GenFile {
-        code: rs,
-        mods: HashMap::new(),
-    };
+                return Ok(GenNode::File(GenFile {
+                    name: node.name,
+                    code: rs,
+                }));
+            }
+            RustModNodeFile::Dir(nodes) => {
+                let mut mods = vec![];
 
-    for (name, child) in ast_node.mods {
-        let child_file = generate_rust_code(child)?;
-        file.mods.insert(name, child_file);
+                for (_, node) in nodes {
+                    let gen_mod = rec_generate_rust_code(node)?;
+                    mods.push(gen_mod);
+                }
+
+                return Ok(GenNode::Dir(GenDir {
+                    name: node.name,
+                    files: mods,
+                }));
+            }
+        }
     }
 
-    return Ok(file);
+    let mut generator = Generator::new();
+    let rs = gen_rs_for_file(&mut generator, project.main_file)?;
+
+    let mut main_file = GenFile {
+        name: String::from("main"),
+        code: rs,
+    };
+
+    let mut siblings = vec![];
+
+    for (_, sibling_ref) in project.siblings {
+        let sibling = rec_generate_rust_code(sibling_ref)?;
+        siblings.push(sibling);
+    }
+
+    return Ok(GenProject {
+        main_file,
+        siblings,
+    });
 }
 
 pub fn gen_rs_for_file(generator: &mut Generator, file_ast: RustFileAst) -> Result<String> {

@@ -3,6 +3,40 @@ use super::*;
 pub fn parse_use(parser: &mut Parser, public: Option<Token>) -> Result<UseNode> {
     let use_token = parser.consume(TokenType::Keyword(TokenKeyword::Use))?;
 
+    let pattern_prefix = if parser.scan(&[TokenType::Tilde, TokenType::ForwardSlash]) {
+        let tilde = parser.consume(TokenType::Tilde)?;
+        let forward_slash = parser.consume(TokenType::ForwardSlash)?;
+
+        Some(PatternPrefix::Root(RootPrefixNode {
+            span: Span::from((tilde.span, forward_slash.span)),
+            tilde,
+            forward_slash,
+        }))
+    } else if parser.scan(&[TokenType::DoublePeriod, TokenType::ForwardSlash]) {
+        let mut parent_dirs = vec![];
+        let mut parent_span = None;
+
+        while parser.scan(&[TokenType::DoublePeriod, TokenType::ForwardSlash]) {
+            let double_period = parser.consume(TokenType::DoublePeriod)?;
+            let forward_slash = parser.consume(TokenType::ForwardSlash)?;
+            let span = Span::from((double_period.span, forward_slash.span));
+
+            parent_dirs.push(ParentDirPrefixNode {
+                span,
+                double_period,
+                forward_slash,
+            });
+            parent_span = Some(Span::from((parent_span, span)));
+        }
+
+        Some(PatternPrefix::Rel(RelPrefixNode {
+            parent_dirs,
+            span: parent_span.unwrap(),
+        }))
+    } else {
+        None
+    };
+
     let use_pattern = parse_init_use_pattern(parser)?;
 
     let span = if let Some(public) = &public {
@@ -14,6 +48,7 @@ pub fn parse_use(parser: &mut Parser, public: Option<Token>) -> Result<UseNode> 
     return Ok(UseNode {
         public,
         use_token,
+        pattern_prefix,
         use_pattern,
         span,
     });
@@ -105,7 +140,9 @@ fn parse_use_pattern(parser: &mut Parser) -> Result<UsePatternNode> {
     }
 }
 
-fn parse_destruct_init_use_pattern(parser: &mut Parser) -> Result<UsePatternNode<DestructInitUsePattern>> {
+fn parse_destruct_init_use_pattern(
+    parser: &mut Parser,
+) -> Result<UsePatternNode<DestructInitUsePattern>> {
     if let Some(self_) = parser.consume_if(TokenType::Keyword(TokenKeyword::Self_))? {
         return Ok(UsePatternNode {
             span: self_.span,

@@ -15,19 +15,12 @@ use r#type::*;
 mod r#use;
 use r#use::*;
 
-use std::path::PathBuf;
-
-pub fn parse_file(
-    name: String,
-    path: PathBuf,
-    is_mod_root: bool,
-    parser: &mut Parser,
-) -> Result<FerrumFileAst> {
-    let mut ast = FerrumFileAst::new(name, path, is_mod_root);
+pub fn parse_file(parser: &mut Parser) -> Result<FerrumFileAst> {
+    let mut ast = FerrumFileAst::new();
 
     while parser.index < parser.tokens.len() {
         let item = parse_item(parser)?;
-        ast.items.push(item);
+        ast.items.push(FeShared::new(item));
     }
 
     match parser.tokens.len() {
