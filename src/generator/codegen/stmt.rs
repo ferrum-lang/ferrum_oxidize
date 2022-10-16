@@ -3,7 +3,15 @@ use super::*;
 pub fn gen_rs_for_stmt(generator: &mut Generator, stmt: Statement) -> String {
     let mut rs = generator.padding();
 
-    rs.push_str(&gen_rs_for_partial_stmt(generator, stmt));
+    match stmt {
+        Statement::Item(item) => {
+            rs.push_str(&gen_rs_for_item(generator, item));
+
+            // Semicolons not needed on items
+            return rs;
+        },
+        _ => rs.push_str(&gen_rs_for_partial_stmt(generator, stmt)),
+    }
 
     rs.push_str(";\n");
 
@@ -14,14 +22,9 @@ fn gen_rs_for_partial_stmt(generator: &mut Generator, stmt: Statement) -> String
     let mut rs = String::new();
 
     match stmt {
+        Statement::Item(_) => unreachable!(),
         Statement::Expr(expr) => {
             rs.push_str(&gen_rs_for_expr(generator, expr));
-        },
-        Statement::Item(item) => {
-            rs.push_str(&gen_rs_for_item(generator, item));
-
-            // Semicolons not needed on items
-            return rs;
         },
         Statement::Decl(decl) => {
             if decl.is_const {
