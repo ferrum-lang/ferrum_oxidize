@@ -4,6 +4,7 @@ pub fn gen_rs_for_expr(generator: &mut Generator, expr: Expr) -> String {
     match expr {
         Expr::Literal(literal) => return gen_rs_for_lit(generator, literal),
         Expr::FnCall(fn_call) => return gen_rs_for_fn_call(generator, fn_call),
+        Expr::StaticAccess(static_access) => return gen_rs_for_static_access(generator, static_access),
         Expr::IdentLookup(ident_lookup) => return ident_lookup,
         Expr::SharedRef(expr) => return format!("&{}", gen_rs_for_expr(generator, *expr)),
         Expr::MutRef(expr) => return format!("&mut {}", gen_rs_for_expr(generator, *expr)),
@@ -40,5 +41,13 @@ pub fn gen_rs_for_lit_bool(_: &mut Generator, is_true: bool) -> String {
 
 pub fn gen_rs_for_lit_string(_: &mut Generator, string: String) -> String {
     return format!("FeStr::from_static(\"{string}\")");
+}
+
+pub fn gen_rs_for_static_access(generator: &mut Generator, static_access: StaticAccess) -> String {
+    return format!(
+        "{}::{}",
+        gen_rs_for_expr(generator, *static_access.lhs),
+        gen_rs_for_expr(generator, *static_access.rhs),
+    );
 }
 

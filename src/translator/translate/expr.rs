@@ -10,6 +10,10 @@ pub fn translate_expr(translator: &mut Translator, expr: parser::ast::ExprNode) 
             let literal = translate_literal(translator, literal)?;
             return Ok(Expr::Literal(literal));
         }
+        parser::ast::Expr::StaticAccess(static_access) => {
+            let static_access = translate_static_access(translator, static_access)?;
+            return Ok(Expr::StaticAccess(static_access));
+        },
         parser::ast::Expr::IdentLookup(ident_lookup) => {
             return Ok(Expr::IdentLookup(ident_lookup.name.literal));
         },
@@ -41,7 +45,7 @@ pub fn translate_fn_call(translator: &mut Translator, fn_call: parser::ast::FnCa
     });
 }
 
-pub fn translate_literal(translator: &mut Translator, literal: parser::ast::LiteralNode) -> Result<Literal> {
+pub fn translate_literal(_: &mut Translator, literal: parser::ast::LiteralNode) -> Result<Literal> {
     match literal.literal {
         parser::ast::Literal::Bool(is_true) => {
             return Ok(Literal::Bool(is_true));
@@ -50,5 +54,15 @@ pub fn translate_literal(translator: &mut Translator, literal: parser::ast::Lite
             return Ok(Literal::String(string));
         },
     }
+}
+
+pub fn translate_static_access(translator: &mut Translator, static_access: parser::ast::StaticAccessNode) -> Result<StaticAccess> {
+    let lhs = translate_expr(translator, *static_access.lhs)?;
+    let rhs = translate_expr(translator, *static_access.rhs)?;
+
+    return Ok(StaticAccess {
+        lhs: Box::new(lhs),
+        rhs: Box::new(rhs),
+    });
 }
 

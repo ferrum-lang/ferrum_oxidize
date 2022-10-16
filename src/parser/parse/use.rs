@@ -150,6 +150,13 @@ fn parse_destruct_init_use_pattern(
         });
     }
 
+    if let Some(wild) = parser.consume_if(TokenType::Asterisk)? {
+        return Ok(UsePatternNode {
+            span: wild.span,
+            use_pattern: DestructInitUsePattern::Wild(wild),
+        });
+    }
+
     let token = parser
         .consume(TokenType::Identifier)
         .with_context(|| "Expected some use pattern to parse")?;

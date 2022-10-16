@@ -193,21 +193,6 @@ fn fill_scope_with_items<'a>(
                     }
                 };
 
-                // let dependency_node = if let Some(dep_node) = ast_node
-                //     .nodes
-                //     .iter_mut()
-                //     .find(|n| n.file.name == dependency)
-                // {
-                //     dep_node
-                // } else {
-                //     Err(ParseError::UseNotFound(
-                //         file!(),
-                //         line!(),
-                //         ast_node.file.path.clone(),
-                //         use_node.clone(),
-                //     ))?
-                // };
-
                 if filling_pub_api && dependency_file.pub_api.is_empty() {
                     let mut pub_api = dependency_file.pub_api.clone();
                     let mut items = dependency_file.items.clone();
@@ -224,7 +209,7 @@ fn fill_scope_with_items<'a>(
                     dependency_file.items = items;
                 }
 
-                match &mut use_node.use_pattern.use_pattern {
+                match &use_node.use_pattern.use_pattern {
                     InitUsePattern::Id(id) => {
                         scope.insert(
                             id.literal.clone(),
@@ -236,14 +221,15 @@ fn fill_scope_with_items<'a>(
                         );
                     }
                     InitUsePattern::Path(path) => {
+                        let mut rhs = path.rhs.clone();
+
                         if let UsePattern::Destruct(UsePatternDestruct {
                             patterns,
                             open_brace,
                             close_brace,
                         }) = &path.rhs.use_pattern
                         {
-                            let mut new_patterns = Punctuated::new();
-                            let mut prev_delim = None;
+                            let mut patterns_to_resolve = Punctuated::new();
 
                             for (pattern, delim) in patterns.clone().take_as_vec() {
                                 if let DestructInitUsePattern::Self_(_) = pattern.use_pattern {
@@ -258,19 +244,18 @@ fn fill_scope_with_items<'a>(
                                         },
                                     );
                                 } else {
-                                    new_patterns.push(prev_delim, pattern);
-                                    prev_delim = delim;
+                                    patterns_to_resolve.push(delim, pattern);
                                 }
                             }
 
-                            path.rhs.use_pattern = UsePattern::Destruct(UsePatternDestruct {
+                            rhs.use_pattern = UsePattern::Destruct(UsePatternDestruct {
                                 open_brace: open_brace.clone(),
-                                patterns: new_patterns,
+                                patterns: patterns_to_resolve,
                                 close_brace: close_brace.clone(),
                             });
                         }
 
-                        resolve_use_pattern(scope, &dependency_file.pub_api, &path.rhs, is_public)?
+                        resolve_use_pattern(scope, &dependency_file.pub_api, &rhs, is_public)?
                     }
                 }
             }
@@ -285,18 +270,18 @@ fn fill_scope_with_items<'a>(
                     if fn_def.pub_token.is_none() {
                         todo!("Error: Main fn must be public.");
                     }
-                    
+
                     if fn_def.generics.is_some() {
                         todo!("Error: Main fn cannot contain generic params.");
                     }
 
                     if let Some((_, return_type)) = &fn_def.return_type {
                         match return_type.typ {
-                            Type::Result(None) => {},
+                            Type::Result(None) => {}
                             _ => todo!("Error: Invalid return type for main fn."),
                         }
                     }
-                    
+
                     is_main = true;
                 }
 
@@ -394,15 +379,15 @@ fn resolve_use_pattern(
                 ))?;
             }
 
-            let mut path = path.clone();
+            let mut rhs = path.rhs.clone();
 
-            path.rhs.use_pattern = if let UsePattern::Destruct(UsePatternDestruct {
+            if let UsePattern::Destruct(UsePatternDestruct {
                 patterns,
                 open_brace,
                 close_brace,
             }) = path.rhs.use_pattern.clone()
             {
-                let mut new_patterns = Punctuated::new();
+                let mut patterns_to_resolve = Punctuated::new();
 
                 for (pattern, delim) in patterns.clone().take_as_vec() {
                     if let DestructInitUsePattern::Self_(_) = pattern.use_pattern {
@@ -415,22 +400,20 @@ fn resolve_use_pattern(
                             },
                         );
                     } else {
-                        new_patterns.push(delim, pattern);
+                        patterns_to_resolve.push(delim, pattern);
                     }
                 }
 
-                UsePattern::Destruct(UsePatternDestruct {
+                rhs.use_pattern = UsePattern::Destruct(UsePatternDestruct {
                     open_brace,
-                    patterns: new_patterns,
+                    patterns: patterns_to_resolve,
                     close_brace,
-                })
-            } else {
-                path.rhs.use_pattern
-            };
+                });
+            }
 
             match &scope_ref.scope_ref {
                 ScopeRef::Mod(mod_scope) => {
-                    resolve_use_pattern(dest_scope, &mod_scope, &path.rhs, is_public)?
+                    resolve_use_pattern(dest_scope, &mod_scope, &rhs, is_public)?
                 }
                 ScopeRef::Fn { .. } => Err(ParseError::InvalidUsePattern(
                     file!(),

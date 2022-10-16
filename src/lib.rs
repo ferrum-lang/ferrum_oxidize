@@ -256,10 +256,7 @@ pub fn translate_to_rust_ast(ferrum_ast: FeShared<FerrumModNode>) -> Result<Rust
     return Ok(rs_ast);
 }
 
-pub fn generate_cargo_project(
-    rust_ast: RustProject,
-    build_dir: PathBuf,
-) -> Result<CargoProject> {
+pub fn generate_cargo_project(rust_ast: RustProject, build_dir: PathBuf) -> Result<CargoProject> {
     return Ok(generator::generate_cargo_project(rust_ast, build_dir)?);
 }
 

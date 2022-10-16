@@ -1,30 +1,58 @@
 use super::*;
 
 pub fn parse_expr(parser: &mut Parser) -> Result<ExprNode> {
+    let expr = parse_inner_expr(parser)?;
+
+    let token = parser.next().ok();
+
+    match token.map(|t| t.token_type) {
+        Some(TokenType::Plus) => {
+            todo!();
+        },
+        _ => return Ok(expr),
+    }
+}
+
+pub fn parse_inner_expr(parser: &mut Parser) -> Result<ExprNode> {
     let token = parser
         .current()
         .with_context(|| format!("Expected some expr to parse"))?;
 
-    match token.token_type {
-        TokenType::Ampersand => return parse_ref_expr(parser),
-        TokenType::Asterisk => return parse_deref_expr(parser),
-        TokenType::Identifier => return parse_ident_expr(parser),
+    let expr = match token.token_type {
+        TokenType::Ampersand => parse_ref_expr(parser)?,
+        TokenType::Asterisk => parse_deref_expr(parser)?,
+        TokenType::Identifier => parse_ident_expr(parser)?,
         TokenType::Literal(_) => {
             let literal = parse_literal(parser)?;
 
-            return Ok(ExprNode {
+            ExprNode {
                 span: literal.span,
                 expr: Expr::Literal(literal),
-            });
+            }
         },
         _ => Err(ParseError::UnexpectedToken(file!(), line!(), token))?,
+    };
+
+    let token = parser.current().ok();
+
+    match token.map(|t| t.token_type) {
+        Some(TokenType::DoubleColon) => {
+            let static_access = parse_static_access(parser, expr)?;
+
+            return Ok(ExprNode {
+                span: static_access.span,
+                expr: Expr::StaticAccess(static_access),
+            });
+        },
+        _ => return Ok(expr),
     }
+
 }
 
 pub fn parse_deref_expr(parser: &mut Parser) -> Result<ExprNode> {
     let deref_token = parser.consume(TokenType::Asterisk)?;
 
-    let expr = parse_expr(parser)?;
+    let expr = parse_inner_expr(parser)?;
 
     let span = Span::from((deref_token.span, expr.span));
 
@@ -42,7 +70,7 @@ pub fn parse_ref_expr(parser: &mut Parser) -> Result<ExprNode> {
     let ref_token = parser.consume(TokenType::Ampersand)?;
     let mut_token = parser.consume_if(TokenType::Keyword(TokenKeyword::Mut))?;
 
-    let expr = parse_expr(parser)?;
+    let expr = parse_inner_expr(parser)?;
 
     let span = Span::from((ref_token.span, expr.span));
 
@@ -164,4 +192,18 @@ pub fn parse_fn_call(parser: &mut Parser) -> Result<FnCallNode> {
         args,
     });
 }
+
+pub fn parse_static_access(parser: &mut Parser, lhs: ExprNode) -> Result<StaticAccessNode> {
+    let delim = parser.consume(TokenType::DoubleColon)?;
+
+    let rhs = parse_ident_expr(parser)?;
+
+    return Ok(StaticAccessNode {
+        span: Span::from((lhs.span, rhs.span)),
+        delim,
+        lhs: Box::new(lhs),
+        rhs: Box::new(rhs),
+    });
+}
+
 

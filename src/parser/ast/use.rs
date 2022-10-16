@@ -60,6 +60,7 @@ pub enum InitUsePattern {
 pub enum DestructInitUsePattern {
     Id(Token),
     Self_(Token),
+    Wild(Token),
     Path(UsePatternPath),
 }
 
@@ -85,6 +86,7 @@ impl From<DestructInitUsePattern> for UsePattern {
         match value {
             DestructInitUsePattern::Id(id) => return UsePattern::Id(id),
             DestructInitUsePattern::Self_(self_) => return UsePattern::Id(self_),
+            DestructInitUsePattern::Wild(wild) => return UsePattern::Wild(wild),
             DestructInitUsePattern::Path(p) => return UsePattern::Path(p),
         }
     }

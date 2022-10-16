@@ -6,7 +6,6 @@ pub fn parse_statement(parser: &mut Parser) -> Result<StatementNode> {
         .with_context(|| format!("Expected some statement to parse"))?;
 
     let stmt = match token.token_type {
-        TokenType::Identifier => parse_ident_stmt(parser)?,
         // TokenType::Keyword(TokenKeyword::Return) => parse_return_stmt(parser)?,
         TokenType::Keyword(TokenKeyword::Const) | TokenType::Keyword(TokenKeyword::Let) =>
             parse_assign_decl(parser)?,
@@ -20,26 +19,11 @@ pub fn parse_statement(parser: &mut Parser) -> Result<StatementNode> {
         }
     };
 
+    // TODO: Check for 2nd part of statments (ie. =, !=, +=, ...)
+
     require_newline(parser, stmt.span.to.line)?;
 
     return Ok(stmt);
-}
-
-pub fn parse_ident_stmt(parser: &mut Parser) -> Result<StatementNode> {
-    parser.expect(TokenType::Identifier)?;
-
-    let token = parser.next().ok();
-
-    match token.map(|t| t.token_type) {
-        _ => {
-            let expr = parse_ident_expr(parser)?;
-
-            return Ok(StatementNode {
-                span: expr.span,
-                statement: Statement::Expr(expr),
-            });
-        }
-    }
 }
 
 pub fn parse_assign_decl(parser: &mut Parser) -> Result<StatementNode> {

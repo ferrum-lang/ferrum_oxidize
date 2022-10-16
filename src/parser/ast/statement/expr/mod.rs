@@ -9,6 +9,9 @@ pub use fn_call::*;
 pub mod literal;
 pub use literal::*;
 
+pub mod static_access;
+pub use static_access::*;
+
 #[derive(Debug, Clone)]
 pub struct ExprNode {
     pub expr: Expr,
@@ -18,6 +21,7 @@ pub struct ExprNode {
 #[derive(Debug, Clone)]
 pub enum Expr {
     IdentLookup(IdentLookupNode),
+    StaticAccess(StaticAccessNode),
     FnCall(FnCallNode),
     Literal(LiteralNode),
     Ref(RefNode),
