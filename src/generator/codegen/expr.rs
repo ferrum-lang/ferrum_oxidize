@@ -46,7 +46,7 @@ pub fn gen_rs_for_lit_string(_: &mut Generator, string: String) -> String {
 pub fn gen_rs_for_static_access(generator: &mut Generator, static_access: StaticAccess) -> String {
     return format!(
         "{}::{}",
-        gen_rs_for_expr(generator, *static_access.lhs),
+        static_access.lhs,
         gen_rs_for_expr(generator, *static_access.rhs),
     );
 }

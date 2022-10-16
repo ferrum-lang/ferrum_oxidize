@@ -25,7 +25,7 @@ pub enum Literal {
 
 #[derive(Debug, Clone)]
 pub struct StaticAccess {
-    pub lhs: Box<Expr>,
+    pub lhs: String,
     pub rhs: Box<Expr>,
 }
 

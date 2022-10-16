@@ -64,6 +64,17 @@ pub fn parse_fn_def(parser: &mut Parser, pub_token: Option<Token>) -> Result<FnD
     let open_brace = parser.consume(TokenType::OpenBrace)?;
 
     let body = parse_items_while(parser, |parser| !parser.scan(&[TokenType::CloseBrace]))?;
+    for item in &body {
+        match &item.item {
+            Item::Statement(_) => {},
+            Item::Use(node) => if node.public.is_some() {
+                todo!("Error: Functions cannot export internal items");
+            },
+            Item::FnDef(node) => if node.pub_token.is_some() {
+                todo!("Error: Functions cannot export internal items");
+            }
+        }
+    }
 
     let close_brace = parser.consume(TokenType::CloseBrace)?;
 

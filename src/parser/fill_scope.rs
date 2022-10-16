@@ -211,6 +211,11 @@ fn fill_scope_with_items<'a>(
 
                 match &use_node.use_pattern.use_pattern {
                     InitUsePattern::Id(id) => {
+                        if let Some(found) = scope.get(&id.literal) {
+                            dbg!(&found);
+                            todo!("Error: Ambiguous item naming within the same scope.");
+                        }
+
                         scope.insert(
                             id.literal.clone(),
                             ScopeRefNode {
@@ -233,6 +238,13 @@ fn fill_scope_with_items<'a>(
 
                             for (pattern, delim) in patterns.clone().take_as_vec() {
                                 if let DestructInitUsePattern::Self_(_) = pattern.use_pattern {
+                                    if let Some(found) = scope.get(&path.parent_name.literal) {
+                                        dbg!(&found);
+                                        todo!(
+                                            "Error: Ambiguous item naming within the same scope."
+                                        );
+                                    }
+
                                     scope.insert(
                                         path.parent_name.literal.clone(),
                                         ScopeRefNode {
@@ -289,6 +301,11 @@ fn fill_scope_with_items<'a>(
                     todo!("Error: Entry files can only export a main function.");
                 }
 
+                if let Some(found) = scope.get(&fn_def.name.literal) {
+                    dbg!(&found);
+                    todo!("Error: Ambiguous item naming within the same scope.");
+                }
+
                 scope.insert(
                     fn_def.name.literal.clone(),
                     ScopeRefNode {
@@ -308,6 +325,7 @@ fn fill_scope_with_items<'a>(
                         },
                     },
                 );
+
                 fill_scope_with_items(
                     ast_node,
                     &mut fn_def.scope,
@@ -348,6 +366,11 @@ fn resolve_use_pattern(
                     use_pattern.clone(),
                     scope_ref.clone(),
                 ))?;
+            }
+
+            if let Some(found) = dest_scope.get(&id.literal) {
+                dbg!(&found);
+                todo!("Error: Ambiguous item naming within the same scope.");
             }
 
             dest_scope.insert(
@@ -391,6 +414,11 @@ fn resolve_use_pattern(
 
                 for (pattern, delim) in patterns.clone().take_as_vec() {
                     if let DestructInitUsePattern::Self_(_) = pattern.use_pattern {
+                        if let Some(found) = dest_scope.get(&path.parent_name.literal) {
+                            dbg!(&found);
+                            todo!("Error: Ambiguous item naming within the same scope.");
+                        }
+
                         dest_scope.insert(
                             path.parent_name.literal.clone(),
                             ScopeRefNode {
@@ -425,6 +453,11 @@ fn resolve_use_pattern(
         UsePattern::Wild(_) => {
             for (name, scope_ref) in src_scope {
                 if scope_ref.is_public {
+                    if let Some(found) = dest_scope.get(name) {
+                        dbg!(&found);
+                        todo!("Error: Ambiguous item naming within the same scope.");
+                    }
+
                     dest_scope.insert(
                         name.clone(),
                         ScopeRefNode {
