@@ -18,10 +18,7 @@ use r#use::*;
 pub fn parse_file(parser: &mut Parser) -> Result<FerrumFileAst> {
     let mut ast = FerrumFileAst::new();
 
-    while parser.index < parser.tokens.len() {
-        let item = parse_item(parser)?;
-        ast.items.push(FeShared::new(item));
-    }
+    ast.items = parse_items_while(parser, |parser| parser.index < parser.tokens.len())?;
 
     match parser.tokens.len() {
         0 => {}
@@ -30,6 +27,35 @@ pub fn parse_file(parser: &mut Parser) -> Result<FerrumFileAst> {
     }
 
     return Ok(ast);
+}
+
+pub fn parse_items_while(
+    parser: &mut Parser,
+    condition: impl Fn(&mut Parser) -> bool,
+) -> Result<Vec<FeShared<ItemNode>>> {
+    let mut items = vec![];
+
+    let mut allow_uses = true;
+
+    while condition(parser) {
+        let item = parse_item(parser)?;
+
+        match item.item {
+            Item::Use(_) if allow_uses => {}
+            Item::Use(_) if !allow_uses => {
+                dbg!(&item);
+                todo!("Error! Uses must be at the top of the scoped block");
+            }
+            _ if allow_uses => {
+                allow_uses = false;
+            }
+            _ => {}
+        }
+
+        items.push(FeShared::new(item));
+    }
+
+    return Ok(items);
 }
 
 fn require_newline(parser: &mut Parser, line: usize) -> Result {

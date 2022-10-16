@@ -32,13 +32,16 @@ pub fn parse_fn_def(parser: &mut Parser, pub_token: Option<Token>) -> Result<FnD
             Span::from((name.span, param_type.span))
         };
 
-        params.push(prev_comma, FnDefParamNode {
-            span,
-            name,
-            colon,
-            param_type,
-            default_value,
-        });
+        params.push(
+            prev_comma,
+            FnDefParamNode {
+                span,
+                name,
+                colon,
+                param_type,
+                default_value,
+            },
+        );
 
         prev_comma = parser.consume_if(TokenType::Comma)?;
     }
@@ -60,12 +63,7 @@ pub fn parse_fn_def(parser: &mut Parser, pub_token: Option<Token>) -> Result<FnD
 
     let open_brace = parser.consume(TokenType::OpenBrace)?;
 
-    let mut body = vec![];
-
-    while !parser.scan(&[TokenType::CloseBrace]) {
-        let item = parse_item(parser)?;
-        body.push(FeShared::new(item));
-    }
+    let body = parse_items_while(parser, |parser| !parser.scan(&[TokenType::CloseBrace]))?;
 
     let close_brace = parser.consume(TokenType::CloseBrace)?;
 
