@@ -5,10 +5,10 @@ pub fn parse_statement(parser: &mut Parser) -> Result<StatementNode> {
         .current()
         .with_context(|| format!("Expected some statement to parse"))?;
 
-    let stmt = match token.token_type {
+    let mut stmt = match token.token_type {
         // TokenType::Keyword(TokenKeyword::Return) => parse_return_stmt(parser)?,
         TokenType::Keyword(TokenKeyword::Const) | TokenType::Keyword(TokenKeyword::Let) =>
-            parse_assign_decl(parser)?,
+            parse_decl(parser)?,
         _ => {
             let expr = parse_expr(parser)?;
 
@@ -19,23 +19,30 @@ pub fn parse_statement(parser: &mut Parser) -> Result<StatementNode> {
         }
     };
 
-    // TODO: Check for 2nd part of statments (ie. =, !=, +=, ...)
+    let token = parser.current().ok();
+
+    match token.map(|t| t.token_type) {
+        Some(TokenType::Equals) => {
+            stmt = parse_assign_stmt(parser, stmt)?;
+        }
+        _ => {},
+    }
 
     require_newline(parser, stmt.span.to.line)?;
 
     return Ok(stmt);
 }
 
-pub fn parse_assign_decl(parser: &mut Parser) -> Result<StatementNode> {
+pub fn parse_decl(parser: &mut Parser) -> Result<StatementNode> {
     let (is_const, decl_token) = if parser.scan(&[TokenType::Keyword(TokenKeyword::Const)]) {
         (true, parser.consume(TokenType::Keyword(TokenKeyword::Const))?)
     } else {
         (false, parser.consume(TokenType::Keyword(TokenKeyword::Let))?)
     };
 
-    let assign_pattern = parse_assign_pattern(parser)?;
+    let decl_pattern = parse_decl_pattern(parser)?;
 
-    let mut span = Span::from((decl_token.span, assign_pattern.span));
+    let mut span = Span::from((decl_token.span, decl_pattern.span));
 
     let explicit_type = if parser.scan(&[TokenType::Colon]) {
         let colon = parser.consume(TokenType::Colon)?;
@@ -48,41 +55,54 @@ pub fn parse_assign_decl(parser: &mut Parser) -> Result<StatementNode> {
         None
     };
 
-    let rhs_expr = if parser.scan(&[TokenType::Equals]) {
-        let eq = parser.consume(TokenType::Equals)?;
-        let expr = parse_expr(parser)?;
-
-        span = Span::from((span, expr.span));
-
-        Some((eq, expr))
-    } else {
-        None
-    };
-
     return Ok(StatementNode {
         span,
         statement: Statement::Decl(DeclarationNode {
             span,
             is_const,
             decl_token,
-            assign_pattern,
+            decl_pattern,
             explicit_type,
-            rhs_expr,
         }),
     });
 }
 
-pub fn parse_assign_pattern(parser: &mut Parser) -> Result<AssignPatternNode> {
+pub fn parse_decl_pattern(parser: &mut Parser) -> Result<DeclPatternNode> {
     let token = parser
         .consume_current()
-        .with_context(|| format!("Expected some assign pattern to parse"))?;
+        .with_context(|| format!("Expected some decl pattern to parse"))?;
 
     match token.token_type {
-        TokenType::Identifier => return Ok(AssignPatternNode {
+        TokenType::Identifier => return Ok(DeclPatternNode {
             span: token.span,
-            assign_pattern: AssignPattern::Id(token),
+            decl_pattern: DeclPattern::Id(token),
         }),
         _ => todo!(),
     }
+}
+
+fn parse_assign_stmt(parser: &mut Parser, lhs: StatementNode) -> Result<StatementNode> {
+    let assign_token = parser
+        .consume_current()
+        .with_context(|| format!("Expected some assign token to parse"))?;
+
+    match &assign_token.token_type {
+        TokenType::Equals => {},
+        _ => todo!(),
+    }
+
+    let rhs = parse_expr(parser)?;
+
+    let span = Span::from((lhs.span, rhs.span));
+
+    return Ok(StatementNode {
+        statement: Statement::Assign(AssignNode {
+            lhs: Box::new(lhs),
+            assign: assign_token,
+            rhs,
+            span,
+        }),
+        span,
+    });
 }
 

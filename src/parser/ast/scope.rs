@@ -19,7 +19,12 @@ pub enum ScopeRef {
         generics: Option<Vec<GenericParam>>,
         params: Vec<FnDefParamNode>,
         return_type: Option<Type>,
-    }
+    },
+    LocalVar {
+        is_const: bool,
+        name: String,
+        known_type: Option<Type>,
+    },
     // Struct(StructDef),
     // ...
 }

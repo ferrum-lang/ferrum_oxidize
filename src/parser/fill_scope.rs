@@ -415,7 +415,7 @@ fn resolve_use_pattern(
                 ScopeRef::Mod(mod_scope) => {
                     resolve_use_pattern(dest_scope, &mod_scope, &rhs, is_public)?
                 }
-                ScopeRef::Fn { .. } => Err(ParseError::InvalidUsePattern(
+                _ => Err(ParseError::InvalidUsePattern(
                     file!(),
                     line!(),
                     use_pattern.clone(),

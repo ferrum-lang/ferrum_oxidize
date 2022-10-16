@@ -1,15 +1,10 @@
 use super::*;
 
 #[derive(Debug, Clone)]
-pub struct AssignPatternNode {
-    pub assign_pattern: AssignPattern,
+pub struct AssignNode {
+    pub lhs: Box<StatementNode>,
+    pub rhs: ExprNode,
+    pub assign: Token,
     pub span: Span,
 }
-
-#[derive(Debug, Clone)]
-pub enum AssignPattern {
-    Id(Token),
-    // ListDestruct(AssignPatternListDestruct),
-}
-
 

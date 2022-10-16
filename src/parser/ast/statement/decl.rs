@@ -4,9 +4,20 @@ use super::*;
 pub struct DeclarationNode {
     pub is_const: bool,
     pub decl_token: Token,
-    pub assign_pattern: AssignPatternNode,
+    pub decl_pattern: DeclPatternNode,
     pub explicit_type: Option<(Token, TypeNode)>,
-    pub rhs_expr: Option<(Token, ExprNode)>,
     pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct DeclPatternNode {
+    pub decl_pattern: DeclPattern,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub enum DeclPattern {
+    Id(Token),
+    // ListDestruct(DeclPatternListDestruct),
 }
 

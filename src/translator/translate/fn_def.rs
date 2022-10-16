@@ -55,6 +55,7 @@ pub fn translate_fn_def(
     }
 
     translator.scope_stack.push(fn_def.scope);
+    translator.scope_stack.push(HashMap::new());
 
     let mut body = vec![];
 
@@ -69,6 +70,7 @@ pub fn translate_fn_def(
         }
     }
 
+    translator.scope_stack.pop();
     translator.scope_stack.pop();
 
     return Ok(FnDef {

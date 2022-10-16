@@ -19,5 +19,6 @@ pub struct StatementNode {
 pub enum Statement {
     Expr(ExprNode),
     Decl(DeclarationNode),
+    Assign(AssignNode),
 }
 
