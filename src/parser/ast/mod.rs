@@ -81,7 +81,7 @@ pub struct FerrumModNode {
 }
 
 impl FerrumModNode {
-    pub fn new(name: String, path: PathBuf, file: FerrumModNodeFile) -> Self {
+    pub fn new(name: String, path: PathBuf, file: FerrumModNodeFile, file_type: FileType) -> Self {
         return Self {
             id: uuid(),
             name,
@@ -138,6 +138,12 @@ impl std::fmt::Debug for FerrumModNode {
 }
 
 #[derive(Debug, Clone)]
+pub enum FileType {
+    Ferrum,
+    LocalRustBind,
+}
+
+#[derive(Debug, Clone)]
 pub enum FerrumModNodeFile {
     File(FerrumFileAst),
     Dir(HashMap<String, FeShared<FerrumModNode>>),
@@ -145,6 +151,7 @@ pub enum FerrumModNodeFile {
 
 #[derive(Debug, Clone)]
 pub struct FerrumFileAst {
+    pub file_type: FileType,
     pub items: Vec<FeShared<ItemNode>>,
     pub pub_api: ScopeTable,
     pub scope: ScopeTable,
@@ -152,8 +159,9 @@ pub struct FerrumFileAst {
 }
 
 impl FerrumFileAst {
-    pub fn new() -> Self {
+    pub fn new(file_type: FileType) -> Self {
         return Self {
+            file_type,
             items: vec![],
             pub_api: ScopeTable::new(),
             scope: ScopeTable::new(),

@@ -61,7 +61,13 @@ pub fn parse_fn_def(parser: &mut Parser, pub_token: Option<Token>) -> Result<FnD
         None
     };
 
-    let (body, span) = if let Some(fat_arrow) = parser.consume_if(TokenType::FatArrow)? {
+    let (body, span) = if !parser.require_impl {
+        (FnDefBody::Block(FnDefBlockNode {
+            items: vec![],
+            close_semicolon: Token::new(TokenType::Semicolon, ";", Span::from((0, 0))),
+            span: Span::from((0, 0)),
+        }), Span::from((0, 0)))
+    } else if let Some(fat_arrow) = parser.consume_if(TokenType::FatArrow)? {
         let stmt = parse_statement(parser)?;
 
         let body_span = Span::from((fat_arrow.span, stmt.span));

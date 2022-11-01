@@ -15,9 +15,13 @@ pub fn gen_rs_for_expr(generator: &mut Generator, expr: Expr) -> String {
 pub fn gen_rs_for_fn_call(generator: &mut Generator, fn_call: FnCall) -> String {
     let mut rs = format!("{}(", fn_call.name);
 
-    for expr in fn_call.args {
-        rs.push_str(&gen_rs_for_expr(generator, expr));
-    }
+    let args = fn_call.args
+        .into_iter()
+        .map(|expr| gen_rs_for_expr(generator, expr))
+        .collect::<Vec<String>>()
+        .join(", ");
+
+    rs.push_str(&args);
 
     rs.push_str(")");
 

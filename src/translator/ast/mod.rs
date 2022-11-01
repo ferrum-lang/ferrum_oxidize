@@ -13,7 +13,7 @@ pub use r#type::*;
 mod r#use;
 pub use r#use::*;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct RustProject {
@@ -29,7 +29,8 @@ pub struct RustModNode {
 
 #[derive(Debug, Clone)]
 pub enum RustModNodeFile {
-    File(RustFileAst),
+    FerrumFile(RustFileAst),
+    RustFile(PathBuf),
     Dir(HashMap<String, RustModNode>),
 }
 

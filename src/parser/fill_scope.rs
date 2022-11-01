@@ -31,6 +31,9 @@ fn fill_mod_node_pub_api(
 
                 file.pub_api = pub_api;
                 file.items = items;
+
+                println!("PUB API: {:#?}", ast_node.name);
+                dbg!(&file.pub_api);
             }
         }
         FerrumModNodeFile::Dir(nodes) => {
@@ -60,7 +63,16 @@ fn fill_mod_node_full_scope(
 
     match &mut FeShared::share(ast_node).file {
         FerrumModNodeFile::File(file) => {
+            match file.file_type {
+                FileType::LocalRustBind => {
+                    return Ok(());
+                }
+                FileType::Ferrum => {}
+            }
+
             if file.scope.is_empty() {
+                println!("FULL SCOPE: {:#?}", ast_node.name);
+
                 let mut scope = file.scope.clone();
                 let mut items = file.items.clone();
 
@@ -68,6 +80,11 @@ fn fill_mod_node_full_scope(
 
                 file.scope = scope;
                 file.items = items;
+
+                if is_entry {
+                    println!("MAIN FULL SCOPE");
+                    dbg!(&file.scope);
+                }
             }
         }
         FerrumModNodeFile::Dir(nodes) => {
@@ -128,10 +145,6 @@ fn fill_scope_with_items<'a>(
                         ast_node.path.clone(),
                         use_node.clone(),
                     ))?
-                }
-
-                if let Some(extern_type) = &use_node.extern_type {
-                    todo!("Can't handle yet: {extern_type:#?}");
                 }
 
                 let mut dependency_node = match &use_node.pattern_prefix {

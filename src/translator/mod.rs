@@ -25,7 +25,7 @@ pub fn translate_to_rust(
 
     match src.file {
         RustModNodeFile::Dir(mut nodes) => match nodes.remove("main").unwrap().file {
-            RustModNodeFile::File(main_file) => {
+            RustModNodeFile::FerrumFile(main_file) => {
                 return Ok(RustProject {
                     main_file,
                     siblings: nodes,
@@ -58,6 +58,18 @@ fn translate_to_rust_node(
             });
         }
         parser::ast::FerrumModNodeFile::File(fe_file) => {
+            match fe_file.file_type {
+                parser::ast::FileType::Ferrum => {},
+                parser::ast::FileType::LocalRustBind => {
+                    let rs_path = fe_node.path.with_extension("rs");
+
+                    return Ok(RustModNode {
+                        name: fe_node.name.clone(),
+                        file: RustModNodeFile::RustFile(rs_path)
+                    });
+                },
+            }
+
             let mut file = translate_file(&mut translator, fe_file)?;
 
             if is_entry || fe_node.name.as_str() == "_pkg" {
@@ -160,7 +172,7 @@ fn translate_to_rust_node(
                     String::from("main"),
                     RustModNode {
                         name: String::from("main"),
-                        file: RustModNodeFile::File(file),
+                        file: RustModNodeFile::FerrumFile(file),
                     },
                 );
 
@@ -181,7 +193,7 @@ fn translate_to_rust_node(
                 } else {
                     fe_node.name.clone()
                 },
-                file: RustModNodeFile::File(file),
+                file: RustModNodeFile::FerrumFile(file),
             });
         }
     }

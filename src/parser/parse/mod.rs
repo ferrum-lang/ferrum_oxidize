@@ -16,7 +16,11 @@ mod r#use;
 use r#use::*;
 
 pub fn parse_file(parser: &mut Parser) -> Result<FerrumFileAst> {
-    let mut ast = FerrumFileAst::new();
+    let mut ast = FerrumFileAst::new(if parser.require_impl {
+        FileType::Ferrum
+    } else {
+        FileType::LocalRustBind
+    });
 
     ast.items = parse_items_while(parser, |parser| parser.index < parser.tokens.len())?;
 

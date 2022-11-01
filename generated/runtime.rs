@@ -191,6 +191,11 @@ pub mod prelude {
             return Self::from_owned(string);
         }
     }
+    impl From<FeStr> for String {
+        fn from(fe_str: FeStr) -> Self {
+            return fe_str.to_string();
+        }
+    }
     impl Deref for FeStr {
         type Target = str;
         fn deref(&self) -> &Self::Target {

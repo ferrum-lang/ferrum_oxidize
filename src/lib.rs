@@ -71,7 +71,7 @@ pub fn build_to_cargo_project(entry_file: PathBuf, build_dir: PathBuf) -> Result
 enum FileType {
     Dir,
     Ferrum,
-    Rust,
+    // Rust,
     RustBinding,
 }
 
@@ -94,10 +94,10 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FeShared<Fer
                 let node = compile_to_ferrum_mod_node(filepath, name)?;
                 return Ok(FeShared::new(node));
             }
-            FileType::Rust => {
-                let node = compile_to_rust_mod_node(filepath, name)?;
-                return Ok(FeShared::new(node));
-            }
+            // FileType::Rust => {
+            //     let node = compile_to_rust_mod_node(filepath, name)?;
+            //     return Ok(FeShared::new(node));
+            // }
             FileType::RustBinding => {
                 let node = compile_to_rust_bindings_node(filepath, name)?;
                 return Ok(FeShared::new(node));
@@ -107,6 +107,7 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FeShared<Fer
                     name,
                     filepath.clone(),
                     FerrumModNodeFile::Dir(HashMap::new()),
+                    parser::ast::FileType::Ferrum,
                 ));
 
                 let mut nodes = HashMap::new();
@@ -126,8 +127,8 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FeShared<Fer
                     } else {
                         let (name, file_type) = if filename.ends_with(".fe") {
                             (filename[..filename.len() - 3].to_string(), FileType::Ferrum)
-                        } else if filename.ends_with(".rs") {
-                            (filename[..filename.len() - 3].to_string(), FileType::Rust)
+                        // } else if filename.ends_with(".rs") {
+                        //     (filename[..filename.len() - 3].to_string(), FileType::Rust)
                         } else if filename.ends_with(".rs-fe") {
                             (
                                 filename[..filename.len() - 6].to_string(),
@@ -156,7 +157,7 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FeShared<Fer
                 if !seen_pkg {
                     let pkg_name = String::from("_pkg");
 
-                    let mut pkg_file = FerrumFileAst::new();
+                    let mut pkg_file = FerrumFileAst::new(parser::ast::FileType::Ferrum);
                     for node_name in nodes.keys() {
                         pkg_file.items.push(FeShared::new(ast::ItemNode {
                             item: ast::Item::Use(ast::UseNode {
@@ -194,6 +195,7 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FeShared<Fer
                         pkg_name.clone(),
                         filepath.join("_pkg.fe"),
                         FerrumModNodeFile::File(pkg_file),
+                        parser::ast::FileType::Ferrum,
                     );
 
                     nodes.insert(pkg_name, FeShared::new(pkg_node));
@@ -238,8 +240,8 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FeShared<Fer
             } else {
                 let (name, file_type) = if filename.ends_with(".fe") {
                     (filename[..filename.len() - 3].to_string(), FileType::Ferrum)
-                } else if filename.ends_with(".rs") {
-                    (filename[..filename.len() - 3].to_string(), FileType::Rust)
+                // } else if filename.ends_with(".rs") {
+                //     (filename[..filename.len() - 3].to_string(), FileType::Rust)
                 } else if filename.ends_with(".rs-fe") {
                     (
                         filename[..filename.len() - 6].to_string(),
@@ -289,28 +291,9 @@ pub fn compile_to_ferrum_mod_node(file: PathBuf, name: String) -> Result<FerrumM
 
     let file_ast = parser::parse_to_ast(tokens)?;
 
-    let node = FerrumModNode::new(name, path, FerrumModNodeFile::File(file_ast));
+    let node = FerrumModNode::new(name, path, FerrumModNodeFile::File(file_ast), parser::ast::FileType::Ferrum);
 
     return Ok(node);
-}
-
-pub fn compile_to_rust_mod_node(file: PathBuf, name: String) -> Result<FerrumModNode> {
-    let path = file.to_path_buf();
-
-    // let expanded = cargo::expand(file, name)?;
-
-    todo!("TODO: Expand & syn::parse: {path:?}");
-
-    // let content = fs::read_to_string(file)?;
-    // let tokens = lexer::lex_into_tokens(content)?;
-
-    // println!("\nTokens: {tokens:#?}\n");
-
-    // let file_ast = parser::parse_rust_to_ast(tokens)?;
-
-    // let node = FerrumModNode::new(name, path, FerrumModNodeFile::File(file_ast));
-
-    // return Ok(node);
 }
 
 pub fn compile_to_rust_bindings_node(file: PathBuf, name: String) -> Result<FerrumModNode> {
@@ -323,7 +306,7 @@ pub fn compile_to_rust_bindings_node(file: PathBuf, name: String) -> Result<Ferr
 
     let file_ast = parser::parse_rust_bindings_to_ast(tokens)?;
 
-    let node = FerrumModNode::new(name, path, FerrumModNodeFile::File(file_ast));
+    let node = FerrumModNode::new(name, path, FerrumModNodeFile::File(file_ast), parser::ast::FileType::LocalRustBind);
 
     return Ok(node);
 }

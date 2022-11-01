@@ -18,12 +18,13 @@ use anyhow::Context;
 use ferrum_runtime::prelude::FeShared;
 
 pub fn parse_to_ast(tokens: Vec<Token>) -> Result<FerrumFileAst> {
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(true, tokens);
     return parse_file(&mut parser);
 }
 
 pub fn parse_rust_bindings_to_ast(tokens: Vec<Token>) -> Result<FerrumFileAst> {
-    todo!("parse_rust_bindings_to_ast");
+    let mut parser = Parser::new(false, tokens);
+    return parse_file(&mut parser);
 }
 
 pub fn fill_project_node_scope(root_mod_node: &mut FeShared<FerrumModNode>) -> Result {
@@ -31,13 +32,14 @@ pub fn fill_project_node_scope(root_mod_node: &mut FeShared<FerrumModNode>) -> R
 }
 
 pub struct Parser {
+    pub require_impl: bool,
     pub tokens: Vec<Token>,
     index: usize,
 }
 
 impl Parser {
-    fn new(tokens: Vec<Token>) -> Self {
-        return Self { tokens, index: 0 };
+    fn new(require_impl: bool, tokens: Vec<Token>) -> Self {
+        return Self { require_impl, tokens, index: 0 };
     }
 
     fn current(&self) -> Result<Token> {

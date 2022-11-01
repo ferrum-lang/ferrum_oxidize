@@ -1,3 +1,5 @@
+use std::fs;
+
 use super::*;
 
 mod expr;
@@ -35,7 +37,7 @@ impl Generator {
 pub fn generate_rust_code(project: RustProject) -> Result<GenProject> {
     fn rec_generate_rust_code(node: RustModNode) -> Result<GenNode> {
         match node.file {
-            RustModNodeFile::File(file) => {
+            RustModNodeFile::FerrumFile(file) => {
                 let mut generator = Generator::new();
                 let rs = gen_rs_for_file(&mut generator, file)?;
 
@@ -44,6 +46,14 @@ pub fn generate_rust_code(project: RustProject) -> Result<GenProject> {
                     code: rs,
                 }));
             }
+            RustModNodeFile::RustFile(path) => {
+                let content = fs::read_to_string(path)?;
+
+                return Ok(GenNode::File(GenFile {
+                    name: node.name,
+                    code: content,
+                }));
+            },
             RustModNodeFile::Dir(nodes) => {
                 let mut mods = vec![];
 
@@ -63,7 +73,7 @@ pub fn generate_rust_code(project: RustProject) -> Result<GenProject> {
     let mut generator = Generator::new();
     let rs = gen_rs_for_file(&mut generator, project.main_file)?;
 
-    let mut main_file = GenFile {
+    let main_file = GenFile {
         name: String::from("main"),
         code: rs,
     };
