@@ -28,6 +28,18 @@ pub fn gen_rs_for_lit(generator: &mut Generator, literal: Literal) -> String {
     match literal {
         Literal::Bool(is_true) => return gen_rs_for_lit_bool(generator, is_true),
         Literal::String(string) => return gen_rs_for_lit_string(generator, string),
+        Literal::Tuple(exprs) => {
+            let mut rs = String::from("(");
+
+            for expr in exprs {
+                rs.push_str(&gen_rs_for_expr(generator, expr));
+                rs.push_str(",");
+            }
+
+            rs.push_str(")");
+
+            return rs;
+        },
     }
 }
 

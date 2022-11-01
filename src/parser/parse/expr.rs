@@ -20,7 +20,7 @@ pub fn parse_expr_layer_2(parser: &mut Parser) -> Result<ExprNode> {
 
     let expr = match token.token_type {
         TokenType::Ampersand => parse_ref_expr(parser)?,
-        TokenType::Asterisk => parse_deref_expr(parser)?,
+        TokenType::At => parse_deref_expr(parser)?,
         _ => parse_expr_layer_3(parser)?,
     };
 
@@ -53,7 +53,7 @@ pub fn parse_expr_layer_3(parser: &mut Parser) -> Result<ExprNode> {
 }
 
 pub fn parse_deref_expr(parser: &mut Parser) -> Result<ExprNode> {
-    let deref_token = parser.consume(TokenType::Asterisk)?;
+    let deref_token = parser.consume(TokenType::At)?;
 
     let expr = parse_expr_layer_2(parser)?;
 
@@ -112,7 +112,7 @@ pub fn parse_literal(parser: &mut Parser) -> Result<LiteralNode> {
                 literal: Literal::String(token.literal),
             });
         }
-        _ => todo!(),
+        _ => todo!("{literal:#?}"),
     }
 }
 

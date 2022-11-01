@@ -25,5 +25,13 @@ impl Token {
             span: span.into(),
         };
     }
+
+    pub fn first_line(&self) -> usize {
+        return self.span.first_line();
+    }
+
+    pub fn last_line(&self) -> usize {
+        return self.span.last_line();
+    }
 }
 

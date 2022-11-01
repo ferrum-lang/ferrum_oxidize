@@ -4,6 +4,16 @@ pub struct Span {
     pub to: SpanPoint,
 }
 
+impl Span {
+    pub fn first_line(&self) -> usize {
+        return self.from.line;
+    }
+
+    pub fn last_line(&self) -> usize {
+        return self.to.line;
+    }
+}
+
 impl From<SpanPoint> for Span {
     fn from(value: SpanPoint) -> Self {
         return Self {

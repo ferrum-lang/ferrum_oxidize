@@ -7,6 +7,20 @@ pub fn parse_statement(parser: &mut Parser) -> Result<StatementNode> {
 
     let mut stmt = match token.token_type {
         // TokenType::Keyword(TokenKeyword::Return) => parse_return_stmt(parser)?,
+        TokenType::Keyword(TokenKeyword::Pass) => {
+            let pass = parser.consume(TokenType::Keyword(TokenKeyword::Pass))?;
+            StatementNode {
+                span: pass.span,
+                statement: Statement::Pass,
+            }
+        },
+        TokenType::Keyword(TokenKeyword::Do) => {
+            let do_node = parse_do(parser)?;
+            StatementNode {
+                span: do_node.span,
+                statement: Statement::Do(do_node),
+            }
+        },
         TokenType::Keyword(TokenKeyword::Const) | TokenType::Keyword(TokenKeyword::Let) =>
             parse_decl(parser)?,
         _ => {
@@ -28,14 +42,14 @@ pub fn parse_statement(parser: &mut Parser) -> Result<StatementNode> {
         _ => {},
     }
 
-    require_newline(parser, stmt.span.to.line)?;
+    parser.expect_newline(stmt.span.last_line())?;
 
     return Ok(stmt);
 }
 
 pub fn parse_decl(parser: &mut Parser) -> Result<StatementNode> {
-    let (is_const, decl_token) = if parser.scan(&[TokenType::Keyword(TokenKeyword::Const)]) {
-        (true, parser.consume(TokenType::Keyword(TokenKeyword::Const))?)
+    let (is_const, decl_token) = if let Some(token) = parser.consume_if(TokenType::Keyword(TokenKeyword::Const))? {
+        (true, token)
     } else {
         (false, parser.consume(TokenType::Keyword(TokenKeyword::Let))?)
     };
@@ -79,6 +93,39 @@ pub fn parse_decl_pattern(parser: &mut Parser) -> Result<DeclPatternNode> {
         }),
         _ => todo!(),
     }
+}
+
+fn parse_do(parser: &mut Parser) -> Result<DoNode> {
+    let token = parser.consume(TokenType::Keyword(TokenKeyword::Do))?;
+
+    let next_token_line = parser
+        .current()
+        .with_context(|| format!("Expected some statement to parse"))?
+        .first_line();
+
+    if token.last_line() == next_token_line {
+        let stmt = parse_statement(parser)?;
+        let if_token = parser.consume(TokenType::Keyword(TokenKeyword::If))?;
+        todo!();
+    } else {
+        let mut stmts = vec![];
+
+        while !parser.scan(&[TokenType::Semicolon]) {
+            let stmt = parse_statement(parser)?;
+
+            parser.expect_newline(stmt.span.last_line())?;
+
+            stmts.push(stmt);
+        }
+
+        let close_semicolon = parser.consume(TokenType::Semicolon)?;
+
+        return Ok(DoNode {
+            span: Span::from((token.span, close_semicolon.span)),
+            stmts,
+            close_semicolon,
+        });
+    };
 }
 
 fn parse_assign_stmt(parser: &mut Parser, lhs: StatementNode) -> Result<StatementNode> {

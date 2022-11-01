@@ -298,25 +298,6 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
                 ));
             }
 
-            // TypeName
-            _ if c.is_uppercase() => {
-                let from = SpanPoint { line, column };
-
-                let mut buffer = c.to_string();
-
-                while let Some(&peek) = chars.peek() {
-                    if !peek.is_alphanumeric() {
-                        break;
-                    }
-
-                    buffer.push(peek);
-                    chars.next();
-                    column += 1;
-                }
-
-                tokens.push(Token::new(TokenType::TypeName, buffer, (from, (line, column))));
-            }
-
             // Identifier or keyword
             _ if c.is_alphabetic() || c == '_' => {
                 let from = SpanPoint { line, column };
@@ -359,21 +340,26 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
                     "construct" => TokenType::Keyword(TokenKeyword::Construct),
                     "impl" => TokenType::Keyword(TokenKeyword::Impl),
                     "return" => TokenType::Keyword(TokenKeyword::Return),
+                    "do" => TokenType::Keyword(TokenKeyword::Do),
+                    "get" => TokenType::Keyword(TokenKeyword::Get),
                     "yield" => TokenType::Keyword(TokenKeyword::Yield),
                     "if" => TokenType::Keyword(TokenKeyword::If),
+                    "it" => TokenType::Keyword(TokenKeyword::It),
+                    "is" => TokenType::Keyword(TokenKeyword::Is),
                     "not" => TokenType::Keyword(TokenKeyword::Not),
                     "or" => TokenType::Keyword(TokenKeyword::Or),
                     "and" => TokenType::Keyword(TokenKeyword::And),
                     "else" => TokenType::Keyword(TokenKeyword::Else),
                     "match" => TokenType::Keyword(TokenKeyword::Match),
-                    "is" => TokenType::Keyword(TokenKeyword::Is),
                     "loop" => TokenType::Keyword(TokenKeyword::Loop),
                     "while" => TokenType::Keyword(TokenKeyword::While),
                     "for" => TokenType::Keyword(TokenKeyword::For),
                     "in" => TokenType::Keyword(TokenKeyword::In),
-                    "safe" => TokenType::Keyword(TokenKeyword::Safe),
+                    "stable" => TokenType::Keyword(TokenKeyword::Stable),
                     "async" => TokenType::Keyword(TokenKeyword::Async),
                     "await" => TokenType::Keyword(TokenKeyword::Await),
+                    "rust" => TokenType::Keyword(TokenKeyword::Rust),
+                    "pass" => TokenType::Keyword(TokenKeyword::Pass),
 
                     "bool" => TokenType::Primitive(TokenPrimitive::Bool),
                     "bit" => TokenType::Primitive(TokenPrimitive::Bit),
@@ -397,7 +383,7 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
                     "float64" => TokenType::Primitive(TokenPrimitive::Float64),
                     "bignum" => TokenType::Primitive(TokenPrimitive::BigNum),
                     "char" => TokenType::Primitive(TokenPrimitive::Char),
-                    "string" => TokenType::Primitive(TokenPrimitive::String),
+                    "str" => TokenType::Primitive(TokenPrimitive::String),
 
                     _ => TokenType::Identifier,
                 };
@@ -530,6 +516,16 @@ pub fn lex_into_tokens(content: String) -> Result<Vec<Token>> {
                     tokens.push(Token::new(
                         TokenType::DoublePipe,
                         "||",
+                        (from, (line, column)),
+                    ));
+                }
+                Some(&'>') => {
+                    let from = SpanPoint { line, column };
+                    column += 1;
+                    chars.next();
+                    tokens.push(Token::new(
+                        TokenType::PipeGreaterThan,
+                        "|>",
                         (from, (line, column)),
                     ));
                 }

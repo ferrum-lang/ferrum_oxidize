@@ -4,8 +4,17 @@ use super::*;
 pub struct UseNode {
     pub public: Option<Token>,
     pub use_token: Token,
+    pub extern_type: Option<UseExternTypeNode>,
     pub pattern_prefix: Option<PatternPrefix>,
     pub use_pattern: UsePatternNode<InitUsePattern>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct UseExternTypeNode {
+    pub open_paren: Token,
+    pub extern_type: Token,
+    pub close_paren: Token,
     pub span: Span,
 }
 

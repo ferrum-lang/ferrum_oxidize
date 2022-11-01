@@ -59,7 +59,7 @@ pub fn translate_fn_def(
 
     let mut body = vec![];
 
-    for item in fn_def.body {
+    for item in fn_def.body.get_items() {
         match item.item.clone() {
             parser::ast::Item::Statement(stmt) => body.push(translate_stmt(translator, stmt)?),
             _ => {

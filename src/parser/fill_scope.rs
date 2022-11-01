@@ -130,6 +130,10 @@ fn fill_scope_with_items<'a>(
                     ))?
                 }
 
+                if let Some(extern_type) = &use_node.extern_type {
+                    todo!("Can't handle yet: {extern_type:#?}");
+                }
+
                 let mut dependency_node = match &use_node.pattern_prefix {
                     Some(PatternPrefix::Root(_)) => {
                         let mut root_node = FeShared::share(ast_node);
@@ -329,7 +333,7 @@ fn fill_scope_with_items<'a>(
                 fill_scope_with_items(
                     ast_node,
                     &mut fn_def.scope,
-                    &mut fn_def.body,
+                    &mut fn_def.body.get_items(),
                     filling_pub_api,
                     false,
                 )?;

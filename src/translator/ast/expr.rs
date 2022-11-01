@@ -21,6 +21,7 @@ pub struct FnCall {
 pub enum Literal {
     Bool(bool),
     String(String),
+    Tuple(Vec<Expr>),
 }
 
 #[derive(Debug, Clone)]

@@ -23,6 +23,17 @@ fn gen_rs_for_partial_stmt(generator: &mut Generator, stmt: Statement) -> String
 
     match stmt {
         Statement::Item(_) => unreachable!(),
+        Statement::Block(block) => {
+            rs.push_str("{\n");
+
+            generator.indent_count += 1;
+            for stmt in block.stmts {
+                rs.push_str(&gen_rs_for_stmt(generator, stmt));
+            }
+            generator.indent_count -= 1;
+
+            rs.push_str(&format!("\n{}}}", generator.padding()));
+        },
         Statement::Expr(expr) => {
             rs.push_str(&gen_rs_for_expr(generator, expr));
         },

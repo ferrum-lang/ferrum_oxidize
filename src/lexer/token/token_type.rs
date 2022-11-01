@@ -13,8 +13,7 @@ pub enum TokenType {
     Keyword(TokenKeyword),
     Primitive(TokenPrimitive),
 
-    Identifier, // Starts with lowercase letter
-    TypeName,   // Starts with uppercase letter
+    Identifier,
 
     TemplateStringStart,
     TemplateStringMiddle,
@@ -54,8 +53,9 @@ pub enum TokenType {
     Ampersand,       // &
     DoubleAmpersand, // &&
 
-    Pipe,       // |
-    DoublePipe, // ||
+    Pipe,            // |
+    DoublePipe,      // ||
+    PipeGreaterThan, // |>
 
     LessThan,       // <
     LessThanEquals, // <=

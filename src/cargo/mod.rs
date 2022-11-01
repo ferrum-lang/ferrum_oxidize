@@ -33,3 +33,8 @@ pub fn build(cargo_project: project::CargoProject, target: Target, out_file: Pat
     return Ok(());
 }
 
+// cargo +nightly rustc --profile=check -- -Zunpretty=expanded
+pub fn expand() -> Result<String> {
+    todo!();
+}
+

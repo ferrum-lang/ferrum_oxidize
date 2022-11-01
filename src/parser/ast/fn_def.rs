@@ -10,9 +10,7 @@ pub struct FnDefNode {
     pub params: Punctuated<FnDefParamNode, Token>,
     pub close_paren: Token,
     pub return_type: Option<(Token, TypeNode)>,
-    pub open_brace: Token,
-    pub body: Vec<FeShared<ItemNode>>,
-    pub close_brace: Token,
+    pub body: FnDefBody,
     pub scope: ScopeTable,
     pub span: Span,
 }
@@ -26,3 +24,35 @@ pub struct FnDefParamNode {
     pub span: Span,
 }
 
+#[derive(Debug, Clone)]
+pub enum FnDefBody {
+    Block(FnDefBlockNode),
+    Stmt(FnDefStmtNode),
+}
+
+#[derive(Debug, Clone)]
+pub struct FnDefBlockNode {
+    pub items: Vec<FeShared<ItemNode>>,
+    pub close_semicolon: Token,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct FnDefStmtNode {
+    pub fat_arrow: Token,
+    pub stmt: Box<FeShared<ItemNode>>,
+    pub span: Span,
+}
+
+impl FnDefBody {
+    pub fn get_items(&self) -> Vec<FeShared<ItemNode>> {
+        match self {
+            Self::Block(block) => {
+                return block.items.iter().map(FeShared::share).collect();
+            }
+            Self::Stmt(stmt) => {
+                return vec![FeShared::share(&*stmt.stmt)];
+            }
+        }
+    }
+}

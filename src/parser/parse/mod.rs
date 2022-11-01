@@ -58,20 +58,6 @@ pub fn parse_items_while(
     return Ok(items);
 }
 
-fn require_newline(parser: &mut Parser, line: usize) -> Result {
-    if let Some(next) = parser.current().ok() {
-        if let TokenType::CloseBrace = next.token_type {
-            return Ok(());
-        }
-
-        if next.span.from.line == line {
-            Err(ParseError::NotExpectedNewline(file!(), line!(), next))?;
-        }
-    }
-
-    return Ok(());
-}
-
 fn parse_item(parser: &mut Parser) -> Result<ItemNode> {
     let public = parser.consume_if(TokenType::Keyword(TokenKeyword::Pub))?;
 
@@ -110,7 +96,7 @@ fn parse_item(parser: &mut Parser) -> Result<ItemNode> {
         }
     };
 
-    require_newline(parser, item.span.to.line)?;
+    parser.expect_newline(item.span.last_line())?;
 
     return Ok(item);
 }

@@ -7,6 +7,13 @@ pub fn translate_stmt(
     use crate::parser::ast::scope::*;
 
     match stmt.statement {
+        parser::ast::Statement::Pass => {
+            return Ok(Statement::Expr(Expr::Literal(Literal::Tuple(vec![]))));
+        },
+        parser::ast::Statement::Do(do_node) => {
+            let block = translate_do(translator, do_node)?;
+            return Ok(Statement::Block(block));
+        },
         parser::ast::Statement::Expr(expr) => {
             let expr = translate_expr(translator, expr)?;
             return Ok(Statement::Expr(expr));
@@ -89,4 +96,16 @@ pub fn translate_assign_type(_: &mut Translator, assign_type: parser::ast::Token
         TokenType::Equals => return Ok(AssignType::Eq),
         _ => todo!(),
     }
+}
+
+fn translate_do(translator: &mut Translator, do_node: parser::ast::DoNode) -> Result<StmtBlock> {
+    let mut block = StmtBlock {
+        stmts: vec![],
+    };
+
+    for stmt in do_node.stmts {
+        block.stmts.push(translate_stmt(translator, stmt)?);
+    }
+
+    return Ok(block);
 }

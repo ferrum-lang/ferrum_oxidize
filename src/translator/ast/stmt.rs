@@ -2,10 +2,16 @@ use super::*;
 
 #[derive(Debug, Clone)]
 pub enum Statement {
+    Block(StmtBlock),
     Item(Item),
     Expr(Expr),
     Decl(Declaration),
     Assign(Assign),
+}
+
+#[derive(Debug, Clone)]
+pub struct StmtBlock {
+    pub stmts: Vec<Statement>,
 }
 
 #[derive(Debug, Clone)]

@@ -3,6 +3,20 @@ use super::*;
 pub fn parse_use(parser: &mut Parser, public: Option<Token>) -> Result<UseNode> {
     let use_token = parser.consume(TokenType::Keyword(TokenKeyword::Use))?;
 
+    let extern_type = if let Some(open_paren) = parser.consume_if(TokenType::OpenParenthesis)? {
+        let extern_type = parser.consume(TokenType::Keyword(TokenKeyword::Rust))?;
+        let close_paren = parser.consume(TokenType::CloseParenthesis)?;
+
+        Some(UseExternTypeNode {
+            span: Span::from((open_paren.span, close_paren.span)),
+            open_paren,
+            extern_type,
+            close_paren,
+        })
+    } else {
+        None
+    };
+
     let pattern_prefix = if parser.scan(&[TokenType::Tilde, TokenType::ForwardSlash]) {
         let tilde = parser.consume(TokenType::Tilde)?;
         let forward_slash = parser.consume(TokenType::ForwardSlash)?;
@@ -48,6 +62,7 @@ pub fn parse_use(parser: &mut Parser, public: Option<Token>) -> Result<UseNode> 
     return Ok(UseNode {
         public,
         use_token,
+        extern_type,
         pattern_prefix,
         use_pattern,
         span,

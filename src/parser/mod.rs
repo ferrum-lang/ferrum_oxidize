@@ -22,6 +22,10 @@ pub fn parse_to_ast(tokens: Vec<Token>) -> Result<FerrumFileAst> {
     return parse_file(&mut parser);
 }
 
+pub fn parse_rust_bindings_to_ast(tokens: Vec<Token>) -> Result<FerrumFileAst> {
+    todo!("parse_rust_bindings_to_ast");
+}
+
 pub fn fill_project_node_scope(root_mod_node: &mut FeShared<FerrumModNode>) -> Result {
     return fill_mod_node_scope(root_mod_node);
 }
@@ -83,6 +87,20 @@ impl Parser {
                 ParseError::NotExpectedToken(file!(), line!(), None, token_type)
             })?,
         }
+    }
+
+    fn expect_newline(&mut self, line: usize) -> Result {
+        if let Some(next) = self.current().ok() {
+            if let TokenType::CloseBrace = next.token_type {
+                return Ok(());
+            }
+
+            if next.span.from.line == line {
+                Err(ParseError::NotExpectedNewline(file!(), line!(), next))?;
+            }
+        }
+
+        return Ok(());
     }
 
     fn consume(&mut self, token_type: TokenType) -> Result<Token> {

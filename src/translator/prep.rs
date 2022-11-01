@@ -1,6 +1,7 @@
 use super::*;
 
 use crate::lexer;
+use crate::parser::ast::{FnDefBlockNode, FnDefBody};
 use crate::punctuated::Punctuated;
 use crate::span::Span;
 
@@ -65,17 +66,15 @@ fn move_top_stmts_to_main(file_ast: &mut parser::ast::FerrumFileAst) {
                 span,
             },
             return_type: None,
-            open_brace: lexer::token::Token {
-                literal: String::from("{"),
-                token_type: lexer::token::TokenType::OpenBrace,
+            body: FnDefBody::Block(FnDefBlockNode {
+                items: stmts,
+                close_semicolon: lexer::token::Token {
+                    literal: String::from(";"),
+                    token_type: lexer::token::TokenType::Semicolon,
+                    span,
+                },
                 span,
-            },
-            body: stmts,
-            close_brace: lexer::token::Token {
-                literal: String::from("}"),
-                token_type: lexer::token::TokenType::CloseBrace,
-                span,
-            },
+            }),
             scope: file_ast.scope.clone(),
             span,
         }),
