@@ -38,17 +38,15 @@ pub fn translate_fn_call(
     fn_call: parser::ast::FnCallNode,
 ) -> Result<FnCall> {
     if let None = translator.find_in_scope(&fn_call.name.literal) {
-        if fn_call.name.literal.as_str() != "print" {
-            use crate::parser::ast::ScopeTable;
-            let mut god_scope = ScopeTable::new();
+        use crate::parser::ast::ScopeTable;
+        let mut god_scope = ScopeTable::new();
 
-            for scope in &translator.scope_stack {
-                god_scope.extend(scope.clone());
-            }
-
-            dbg!(god_scope);
-            todo!("{fn_call:#?}");
+        for scope in &translator.scope_stack {
+            god_scope.extend(scope.clone());
         }
+
+        dbg!(god_scope);
+        todo!("{fn_call:#?}");
     }
 
     return Ok(FnCall {

@@ -23,7 +23,7 @@ pub struct Translator {
 
 impl Translator {
     pub fn new(node: FeShared<parser::ast::FerrumModNode>) -> Self {
-        let mut scope_stack = vec![];
+        let mut scope_stack = vec![RUNTIME_SCOPE.clone()];
 
         match &node.file {
             parser::ast::FerrumModNodeFile::File(file) => {

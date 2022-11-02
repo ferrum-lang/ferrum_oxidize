@@ -15,6 +15,7 @@ quote = "1.0.21"
 proc-macro2 = "1.0.43"
 target-lexicon = "0.12.4"
 ferrum_runtime = { path = "./ferrum_runtime" }
+lazy_static = "1.4.0"
 
 [build-dependencies]
 rust_source_bundler = "0.2.2"

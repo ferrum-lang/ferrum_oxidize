@@ -7,6 +7,9 @@ use ast::*;
 pub mod translate;
 use translate::*;
 
+mod runtime;
+use runtime::*;
+
 pub use error::TranslateError;
 
 use crate::parser;

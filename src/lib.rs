@@ -15,6 +15,9 @@ pub use error::OxidizeError;
 pub use result::Result;
 pub use target::Target;
 
+#[macro_use]
+extern crate lazy_static;
+
 use parser::ast::{self, FerrumFileAst, FerrumModNode, FerrumModNodeFile};
 
 use translator::ast::RustProject;
@@ -291,7 +294,12 @@ pub fn compile_to_ferrum_mod_node(file: PathBuf, name: String) -> Result<FerrumM
 
     let file_ast = parser::parse_to_ast(tokens)?;
 
-    let node = FerrumModNode::new(name, path, FerrumModNodeFile::File(file_ast), parser::ast::FileType::Ferrum);
+    let node = FerrumModNode::new(
+        name,
+        path,
+        FerrumModNodeFile::File(file_ast),
+        parser::ast::FileType::Ferrum,
+    );
 
     return Ok(node);
 }
@@ -306,7 +314,12 @@ pub fn compile_to_rust_bindings_node(file: PathBuf, name: String) -> Result<Ferr
 
     let file_ast = parser::parse_rust_bindings_to_ast(tokens)?;
 
-    let node = FerrumModNode::new(name, path, FerrumModNodeFile::File(file_ast), parser::ast::FileType::LocalRustBind);
+    let node = FerrumModNode::new(
+        name,
+        path,
+        FerrumModNodeFile::File(file_ast),
+        parser::ast::FileType::LocalRustBind,
+    );
 
     return Ok(node);
 }
