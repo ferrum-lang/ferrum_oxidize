@@ -1,5 +1,3 @@
-use crate::parser::ast::TemplateStringNode;
-
 use super::*;
 
 pub fn translate_expr(translator: &mut Translator, expr: parser::ast::ExprNode) -> Result<Expr> {

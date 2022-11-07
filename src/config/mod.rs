@@ -22,6 +22,7 @@ pub struct Config {
     pub build_dir: Option<PathBuf>,
     pub out_file: Option<PathBuf>,
     pub target: Option<String>,
+    pub verbose: bool,
 }
 
 pub fn determine_entry_file(config_entry_file: Option<PathBuf>) -> Result<PathBuf> {

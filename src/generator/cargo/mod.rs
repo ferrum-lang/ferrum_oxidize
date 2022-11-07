@@ -6,8 +6,6 @@ pub fn create_and_write_to_cargo_project(
     gen_project: GenProject,
     build_dir: PathBuf,
 ) -> Result<CargoProject> {
-    println!("{}\n", gen_project.main_file.code);
-
     verify_cargo_installed()?;
 
     if let Err(_) = std::fs::canonicalize(&build_dir) {

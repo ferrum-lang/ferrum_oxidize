@@ -41,19 +41,22 @@ pub struct FerrumProject {
 }
 
 pub fn build_project(cfg: Config) -> Result<FerrumProject> {
-    let entry_file = config::determine_entry_file(cfg.entry_file)?;
-    // dbg!(&entry_file);
+    let entry_file = config::determine_entry_file(cfg.entry_file.clone())?;
 
-    let build_dir = config::determine_build_dir(cfg.build_dir)?;
-    // dbg!(&build_dir);
+    let build_dir = config::determine_build_dir(cfg.build_dir.clone())?;
 
-    let out_file = config::determine_out_file(cfg.out_file, &entry_file)?;
-    // dbg!(&out_file);
+    let out_file = config::determine_out_file(cfg.out_file.clone(), &entry_file)?;
 
-    let target = config::determine_target(cfg.target)?;
-    // dbg!(&target);
+    let target = config::determine_target(cfg.target.clone())?;
 
-    let cargo_project = build_to_cargo_project(entry_file.clone(), build_dir.clone())?;
+    if cfg.verbose {
+        dbg!(&entry_file);
+        dbg!(&build_dir);
+        dbg!(&out_file);
+        dbg!(&target);
+    }
+
+    let cargo_project = build_to_cargo_project(&cfg, entry_file.clone(), build_dir.clone())?;
 
     cargo_build(cargo_project, target.clone(), out_file.clone())?;
 
@@ -65,12 +68,12 @@ pub fn build_project(cfg: Config) -> Result<FerrumProject> {
     });
 }
 
-pub fn build_to_cargo_project(entry_file: PathBuf, build_dir: PathBuf) -> Result<CargoProject> {
+pub fn build_to_cargo_project(cfg: &Config, entry_file: PathBuf, build_dir: PathBuf) -> Result<CargoProject> {
     let ferrum_ast = compile_to_ferrum_project_ast(entry_file.clone())?;
 
     let rust_ast = translate_to_rust_ast(ferrum_ast)?;
 
-    let cargo_project = generate_cargo_project(rust_ast, build_dir)?;
+    let cargo_project = generate_cargo_project(cfg, rust_ast, build_dir)?;
 
     return Ok(cargo_project);
 }
@@ -337,8 +340,8 @@ pub fn translate_to_rust_ast(ferrum_ast: FeShared<FerrumModNode>) -> Result<Rust
     return Ok(rs_ast);
 }
 
-pub fn generate_cargo_project(rust_ast: RustProject, build_dir: PathBuf) -> Result<CargoProject> {
-    return Ok(generator::generate_cargo_project(rust_ast, build_dir)?);
+pub fn generate_cargo_project(cfg: &Config, rust_ast: RustProject, build_dir: PathBuf) -> Result<CargoProject> {
+    return Ok(generator::generate_cargo_project(cfg, rust_ast, build_dir)?);
 }
 
 pub fn cargo_build(cargo_project: CargoProject, target: Target, out_file: PathBuf) -> Result {

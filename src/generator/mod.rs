@@ -9,6 +9,7 @@ pub use error::GeneratorError;
 
 use crate::cargo::project::CargoProject;
 use crate::translator::ast::*;
+use crate::Config;
 use crate::Result;
 
 use std::{env, path::PathBuf};
@@ -40,6 +41,7 @@ pub struct GenDir {
 }
 
 pub fn generate_cargo_project(
+    cfg: &Config,
     rust_project: RustProject,
     build_dir: PathBuf,
 ) -> Result<CargoProject> {
@@ -47,13 +49,11 @@ pub fn generate_cargo_project(
 
     gen_project.main_file.code.insert_str(0, "mod ferrum;\n");
 
-    // println!(
-    //     "\n*** Generated Rust Code ***\n{}\n*** End of Generated Code ***",
-    //     gen_project.main_file.code.trim()
-    // );
+    if cfg.verbose {
+        println!("\n{}\n", gen_project.main_file.code.trim());
+    }
 
     let project = create_and_write_to_cargo_project(gen_project, build_dir)?;
 
     return Ok(project);
 }
-
