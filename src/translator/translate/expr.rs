@@ -1,3 +1,5 @@
+use crate::parser::ast::TemplateStringNode;
+
 use super::*;
 
 pub fn translate_expr(translator: &mut Translator, expr: parser::ast::ExprNode) -> Result<Expr> {
@@ -30,6 +32,9 @@ pub fn translate_expr(translator: &mut Translator, expr: parser::ast::ExprNode) 
             let expr = translate_expr(translator, *deref_node.expr)?;
             return Ok(Expr::Deref(Box::new(expr)));
         }
+        parser::ast::Expr::TemplateString(template_string) => {
+            return translate_template_string_expr(translator, template_string);
+        }
     }
 }
 
@@ -60,7 +65,10 @@ pub fn translate_fn_call(
     });
 }
 
-pub fn translate_literal(translator: &mut Translator, literal: parser::ast::LiteralNode) -> Result<Literal> {
+pub fn translate_literal(
+    translator: &mut Translator,
+    literal: parser::ast::LiteralNode,
+) -> Result<Literal> {
     match literal.literal {
         parser::ast::Literal::Bool(is_true) => {
             return Ok(Literal::Bool(is_true));
@@ -110,4 +118,24 @@ pub fn translate_static_access(
         lhs,
         rhs: Box::new(rhs),
     });
+}
+
+pub fn translate_template_string_expr(
+    translator: &mut Translator,
+    template_string: parser::ast::TemplateStringNode,
+) -> Result<Expr> {
+    let mut fmt_string = template_string.start_value;
+    let mut args = vec![];
+
+    for mid in template_string.middles {
+        fmt_string.push_str("{}");
+        fmt_string.push_str(&mid.post_value);
+
+        args.push(translate_expr(translator, *mid.expr)?);
+    }
+
+    return Ok(Expr::StringFmt(StringFmt {
+        fmt_string,
+        args,
+    }));
 }

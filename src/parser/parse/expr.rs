@@ -42,6 +42,14 @@ pub fn parse_expr_layer_3(parser: &mut Parser) -> Result<ExprNode> {
                 expr: Expr::Literal(literal),
             }
         }
+        TokenType::TemplateStringStart => {
+            let string = parse_template_string(parser)?;
+
+            ExprNode {
+                span: string.span,
+                expr: Expr::TemplateString(string),
+            }
+        }
         _ => Err(ParseError::UnexpectedToken(file!(), line!(), token))?,
     };
 
@@ -86,6 +94,42 @@ pub fn parse_ref_expr(parser: &mut Parser) -> Result<ExprNode> {
         }),
         span,
     });
+}
+
+pub fn parse_template_string(parser: &mut Parser) -> Result<TemplateStringNode> {
+    let token = parser
+        .consume(TokenType::TemplateStringStart)
+        .with_context(|| format!("Expected some template string to parse"))?;
+
+    let start_value = token.literal;
+
+    let mut middles = vec![];
+
+    loop {
+        let expr = Box::new(parse_expr_layer_3(parser)?);
+
+        if let Some(end) = parser.consume_if(TokenType::TemplateStringEnd)? {
+            middles.push(TemplateStringMiddleNode {
+                expr,
+                post_value: end.literal,
+                span: end.span,
+            });
+
+            return Ok(TemplateStringNode {
+                start_value,
+                middles,
+                span: Span::from((token.span, end.span)),
+            });
+        } else {
+            let mid = parser.consume(TokenType::TemplateStringMiddle)?;
+
+            middles.push(TemplateStringMiddleNode {
+                span: Span::from((expr.span, mid.span)),
+                expr,
+                post_value: mid.literal,
+            });
+        }
+    }
 }
 
 pub fn parse_literal(parser: &mut Parser) -> Result<LiteralNode> {

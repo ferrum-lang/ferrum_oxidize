@@ -7,6 +7,7 @@ pub enum Expr {
     SharedRef(Box<Expr>),
     MutRef(Box<Expr>),
     Deref(Box<Expr>),
+    StringFmt(StringFmt),
 }
 
 #[derive(Debug, Clone)]
@@ -28,5 +29,11 @@ pub enum Literal {
 pub struct StaticAccess {
     pub lhs: String,
     pub rhs: Box<Expr>,
+}
+
+#[derive(Debug, Clone)]
+pub struct StringFmt {
+    pub fmt_string: String,
+    pub args: Vec<Expr>,
 }
 

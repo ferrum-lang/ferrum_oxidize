@@ -26,6 +26,7 @@ pub enum Expr {
     Literal(LiteralNode),
     Ref(RefNode),
     Deref(DerefNode),
+    TemplateString(TemplateStringNode),
 }
 
 #[derive(Debug, Clone)]
@@ -40,6 +41,20 @@ pub struct RefNode {
 pub struct DerefNode {
     pub deref_token: Token,
     pub expr: Box<ExprNode>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct TemplateStringNode {
+    pub start_value: String,
+    pub middles: Vec<TemplateStringMiddleNode>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct TemplateStringMiddleNode {
+    pub expr: Box<ExprNode>,
+    pub post_value: String,
     pub span: Span,
 }
 

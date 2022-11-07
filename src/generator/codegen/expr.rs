@@ -9,6 +9,7 @@ pub fn gen_rs_for_expr(generator: &mut Generator, expr: Expr) -> String {
         Expr::SharedRef(expr) => return format!("&{}", gen_rs_for_expr(generator, *expr)),
         Expr::MutRef(expr) => return format!("&mut {}", gen_rs_for_expr(generator, *expr)),
         Expr::Deref(expr) => return format!("*{}", gen_rs_for_expr(generator, *expr)),
+        Expr::StringFmt(string_fmt) => return gen_rs_for_string_fmt(generator, string_fmt),
     }
 }
 
@@ -75,5 +76,20 @@ pub fn gen_rs_for_static_access(generator: &mut Generator, static_access: Static
         static_access.lhs,
         gen_rs_for_expr(generator, *static_access.rhs),
     );
+}
+
+pub fn gen_rs_for_string_fmt(generator: &mut Generator, string_fmt: StringFmt) -> String {
+    let mut rs = String::from("FeStr::from_owned(format!(\"");
+    rs.push_str(&string_fmt.fmt_string);
+    rs.push('"');
+
+    for arg in string_fmt.args {
+        rs.push_str(", ");
+        rs.push_str(&gen_rs_for_expr(generator, arg));
+    }
+
+    rs.push_str("))");
+
+    return rs;
 }
 
