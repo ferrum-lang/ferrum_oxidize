@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+mod analysis;
 mod cargo;
 mod config;
 mod error;
@@ -281,6 +282,7 @@ pub fn compile_to_ferrum_project_ast(entry_file: PathBuf) -> Result<FeShared<Fer
     }
 
     parser::fill_project_node_scope(&mut root_node)?;
+    analysis::analyze_and_fix(&mut root_node)?;
 
     // println!("\nAST: {root_node:#?}\n");
 
