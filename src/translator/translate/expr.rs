@@ -60,13 +60,20 @@ pub fn translate_fn_call(
     });
 }
 
-pub fn translate_literal(_: &mut Translator, literal: parser::ast::LiteralNode) -> Result<Literal> {
+pub fn translate_literal(translator: &mut Translator, literal: parser::ast::LiteralNode) -> Result<Literal> {
     match literal.literal {
         parser::ast::Literal::Bool(is_true) => {
             return Ok(Literal::Bool(is_true));
         }
         parser::ast::Literal::String(string) => {
             return Ok(Literal::String(string));
+        }
+        parser::ast::Literal::SomeOption { expr, .. } => {
+            let expr = Box::new(translate_expr(translator, *expr)?);
+            return Ok(Literal::SomeOption(expr));
+        }
+        parser::ast::Literal::NoneOption(_) => {
+            return Ok(Literal::NoneOption);
         }
     }
 }

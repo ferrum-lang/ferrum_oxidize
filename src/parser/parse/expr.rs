@@ -93,8 +93,8 @@ pub fn parse_literal(parser: &mut Parser) -> Result<LiteralNode> {
         .consume_current()
         .with_context(|| format!("Expected some expr to parse"))?;
 
-    let literal = if let TokenType::Literal(literal) = token.token_type {
-        literal
+    let literal = if let TokenType::Literal(literal) = &token.token_type {
+        literal.clone()
     } else {
         Err(ParseError::UnexpectedToken(file!(), line!(), token.clone()))?
     };
@@ -111,6 +111,30 @@ pub fn parse_literal(parser: &mut Parser) -> Result<LiteralNode> {
                 span: token.span,
                 literal: Literal::String(token.literal),
             });
+        }
+        TokenLiteral::Option { is_some } => {
+            if is_some {
+                let open_paren = parser.consume(TokenType::OpenParenthesis)?;
+                let expr = Box::new(parse_expr(parser)?);
+                let close_paren = parser.consume(TokenType::CloseParenthesis)?;
+
+                let span = Span::from((token.span, close_paren.span));
+
+                return Ok(LiteralNode {
+                    span,
+                    literal: Literal::SomeOption {
+                        token,
+                        open_paren,
+                        expr,
+                        close_paren,
+                    },
+                });
+            } else {
+                return Ok(LiteralNode {
+                    span: token.span,
+                    literal: Literal::NoneOption(token),
+                });
+            }
         }
         _ => todo!("{literal:#?}"),
     }

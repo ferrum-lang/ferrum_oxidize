@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 mod cargo;
 mod config;
 mod error;
@@ -38,16 +41,16 @@ pub struct FerrumProject {
 
 pub fn build_project(cfg: Config) -> Result<FerrumProject> {
     let entry_file = config::determine_entry_file(cfg.entry_file)?;
-    dbg!(&entry_file);
+    // dbg!(&entry_file);
 
     let build_dir = config::determine_build_dir(cfg.build_dir)?;
-    dbg!(&build_dir);
+    // dbg!(&build_dir);
 
     let out_file = config::determine_out_file(cfg.out_file, &entry_file)?;
-    dbg!(&out_file);
+    // dbg!(&out_file);
 
     let target = config::determine_target(cfg.target)?;
-    dbg!(&target);
+    // dbg!(&target);
 
     let cargo_project = build_to_cargo_project(entry_file.clone(), build_dir.clone())?;
 

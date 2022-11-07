@@ -8,6 +8,20 @@ pub mod prelude {
     use std::ops::{Deref, DerefMut};
     use std::ptr;
     use std::rc::Rc;
+    pub enum FeOption<T> {
+        Some(T),
+        None,
+    }
+    pub use FeOption::{None, Some};
+    impl<T: std::fmt::Display> std::fmt::Display for FeOption<T> {
+        fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            if let Some(value) = self {
+                return write!(f, "{}", value);
+            } else {
+                return write!(f, "none");
+            }
+        }
+    }
     pub fn print(string: impl std::fmt::Display) {
         println!("{string}");
     }

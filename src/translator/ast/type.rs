@@ -1,5 +1,3 @@
-use super::*;
-
 #[derive(Debug, Clone)]
 pub enum Type {
     Isize,
@@ -10,21 +8,23 @@ pub enum Type {
 
     FeStr,
 
+    Bool,
+
     // Array(Box<Type>, ?),
     // Vec(Box<Type>),
 
     // Custom(CustomType),
     // DynInstance(CustomType),
 
-    // Scoped(Box<TypeNode>, Box<TypeNode>),
+    // Scoped(Box<Type>, Box<Type>),
 
     SharedRef(Box<Type>),
     MutRef(Box<Type>),
 
-    // Managed(Box<TypeNode>),
+    // Managed(Box<Type>),
 
-    // Optional(Box<TypeNode>),
-    // Result(Box<TypeNode>),
+    Optional(Box<Type>),
+    // Result(Box<Type>),
 }
 
 // #[derive(Debug, Clone)]

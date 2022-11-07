@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::lexer::token::{Token, TokenKeyword, TokenType};
+use crate::lexer::token::{Token, TokenType};
 use crate::span::Span;
 
 pub fn translate_fn_def(
@@ -8,15 +8,19 @@ pub fn translate_fn_def(
     fn_def: parser::ast::FnDefNode,
 ) -> Result<FnDef> {
     let mut params = vec![];
-    let mut default_value_stmts: Vec<parser::ast::ItemNode> = vec![];
+    // let mut default_value_stmts: Vec<parser::ast::ItemNode> = vec![];
 
     for mut param in fn_def.params.take_values() {
-        if let Some(default_value) = &param.default_value {
+        if let Some(_default_value) = &param.default_value {
             match param.param_type.typ {
                 // Type::Option(_) => {}
                 _ => {
                     param.param_type = parser::ast::TypeNode {
-                        typ: parser::ast::Type::Optional(Box::new(param.param_type)),
+                        typ: parser::ast::Type::Optional(parser::ast::OptionalNode {
+                            question_mark: Token::new(TokenType::QuestionMark, "?", Span::from((0, 0))),
+                            of: Box::new(param.param_type),
+                            span: Span::from((0, 0)),
+                        }),
                         span: Span::from((0, 0)),
                     };
                 }

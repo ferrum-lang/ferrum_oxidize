@@ -16,6 +16,8 @@ pub enum Type {
 
     String(Token),
 
+    Bool(Token),
+
     Array(Box<TypeNode>, Token),
     List(Box<TypeNode>),
 
@@ -29,7 +31,7 @@ pub enum Type {
 
     Managed(Box<TypeNode>),
 
-    Optional(Box<TypeNode>),
+    Optional(OptionalNode),
     Result(Option<Box<TypeNode>>),
 }
 
@@ -59,6 +61,13 @@ pub struct SharedRefNode {
 pub struct MutRefNode {
     pub ref_token: Token,
     pub mut_token: Token,
+    pub of: Box<TypeNode>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct OptionalNode {
+    pub question_mark: Token,
     pub of: Box<TypeNode>,
     pub span: Span,
 }

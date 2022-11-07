@@ -44,6 +44,16 @@ pub fn gen_rs_for_lit(generator: &mut Generator, literal: Literal) -> String {
 
             return rs;
         },
+        Literal::SomeOption(expr) => {
+            let mut rs = String::from("Some(");
+
+            rs.push_str(&gen_rs_for_expr(generator, *expr));
+
+            rs.push_str(")");
+
+            return rs;
+        }
+        Literal::NoneOption => return String::from("None"),
     }
 }
 

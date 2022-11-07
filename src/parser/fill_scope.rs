@@ -31,9 +31,6 @@ fn fill_mod_node_pub_api(
 
                 file.pub_api = pub_api;
                 file.items = items;
-
-                println!("PUB API: {:#?}", ast_node.name);
-                dbg!(&file.pub_api);
             }
         }
         FerrumModNodeFile::Dir(nodes) => {
@@ -71,8 +68,6 @@ fn fill_mod_node_full_scope(
             }
 
             if file.scope.is_empty() {
-                println!("FULL SCOPE: {:#?}", ast_node.name);
-
                 let mut scope = file.scope.clone();
                 let mut items = file.items.clone();
 
@@ -80,11 +75,6 @@ fn fill_mod_node_full_scope(
 
                 file.scope = scope;
                 file.items = items;
-
-                if is_entry {
-                    println!("MAIN FULL SCOPE");
-                    dbg!(&file.scope);
-                }
             }
         }
         FerrumModNodeFile::Dir(nodes) => {

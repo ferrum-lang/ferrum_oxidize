@@ -11,7 +11,7 @@ use crate::cargo::project::CargoProject;
 use crate::translator::ast::*;
 use crate::Result;
 
-use std::{env, path::PathBuf, collections::HashMap};
+use std::{env, path::PathBuf};
 
 const RUNTIME_RS: &'static str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/generated/runtime.rs"));
@@ -47,10 +47,10 @@ pub fn generate_cargo_project(
 
     gen_project.main_file.code.insert_str(0, "mod ferrum;\n");
 
-    println!(
-        "\n*** Generated Rust Code ***\n{}\n*** End of Generated Code ***",
-        gen_project.main_file.code.trim()
-    );
+    // println!(
+    //     "\n*** Generated Rust Code ***\n{}\n*** End of Generated Code ***",
+    //     gen_project.main_file.code.trim()
+    // );
 
     let project = create_and_write_to_cargo_project(gen_project, build_dir)?;
 

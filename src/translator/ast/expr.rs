@@ -1,5 +1,3 @@
-use super::*;
-
 #[derive(Debug, Clone)]
 pub enum Expr {
     FnCall(FnCall),
@@ -22,6 +20,8 @@ pub enum Literal {
     Bool(bool),
     String(String),
     Tuple(Vec<Expr>),
+    SomeOption(Box<Expr>),
+    NoneOption,
 }
 
 #[derive(Debug, Clone)]

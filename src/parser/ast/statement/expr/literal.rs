@@ -10,4 +10,11 @@ pub struct LiteralNode {
 pub enum Literal {
     Bool(bool),
     String(String),
+    SomeOption {
+        token: Token,
+        open_paren: Token,
+        expr: Box<ExprNode>,
+        close_paren: Token,
+    },
+    NoneOption(Token),
 }

@@ -6,11 +6,30 @@ pub fn parse_type(parser: &mut Parser) -> Result<TypeNode> {
         .with_context(|| format!("Expected some type to parse"))?;
 
     match token.token_type {
+        TokenType::QuestionMark => {
+            let inner = Box::new(parse_type(parser)?);
+            let span = Span::from((token.span, inner.span));
+
+            return Ok(TypeNode {
+                span,
+                typ: Type::Optional(OptionalNode {
+                    question_mark: token,
+                    of: inner,
+                    span,
+                }),
+            });
+        }
         TokenType::Primitive(TokenPrimitive::String) => {
             return Ok(TypeNode {
                 span: token.span,
                 typ: Type::String(token),
             })
+        }
+        TokenType::Primitive(TokenPrimitive::Bool) => {
+            return Ok(TypeNode {
+                span: token.span,
+                typ: Type::Bool(token),
+            });
         }
         TokenType::Ampersand => {
             if let Some(mut_token) = parser.consume_if(TokenType::Keyword(TokenKeyword::Mut))? {
